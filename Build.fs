@@ -11,11 +11,10 @@ let sharedPath = Path.getFullName "src/Shared"
 let serverPath = Path.getFullName "src/Server"
 let clientPath = Path.getFullName "src/Client"
 let deployPath = Path.getFullName "deploy"
-let sharedTestsPath = Path.getFullName "tests/Shared"
-let serverTestsPath = Path.getFullName "tests/Server"
-let clientTestsPath = Path.getFullName "tests/Client"
 
-Target.create "Clean" (fun _ ->
+let proj1Path = Path.getFullName "react-course/Project1"
+
+Target.create "Clean" (fun q ->
     Shell.cleanDir deployPath
     run dotnet "fable clean --yes" clientPath // Delete *.fs.js files created by Fable
 )
@@ -52,15 +51,12 @@ Target.create "Run" (fun _ ->
     |> runParallel
 )
 
-Target.create "RunTests" (fun _ ->
-    run dotnet "build" sharedTestsPath
-    [ "server", dotnet "watch run" serverTestsPath
-      "client", dotnet "fable watch -o output -s --run npm run test:live" clientTestsPath ]
-    |> runParallel
-)
-
 Target.create "Format" (fun _ ->
     run dotnet "fantomas . -r" "src"
+)
+
+Target.create "Project1" (fun _ ->
+    run dotnet "fable watch -o output -s --run npm run proj1" proj1Path
 )
 
 open Fake.Core.TargetOperators
@@ -75,8 +71,10 @@ let dependencies = [
         ==> "InstallClient"
         ==> "Run"
 
-    "InstallClient"
-        ==> "RunTests"
+    "Clean"
+        ==> "InstallClient"
+        ==> "Project1"
+
 ]
 
 [<EntryPoint>]

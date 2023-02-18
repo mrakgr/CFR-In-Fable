@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import {resolve} from 'node:path'
 
 // https://vitejs.dev/config/
 export default ({mode}) => {
@@ -10,7 +11,7 @@ export default ({mode}) => {
     return defineConfig({
         root: process.env.ROOT,
         build: {
-            outDir: process.env.OUTDIR
+            outDir: resolve(process.cwd(),"deploy-js")
         },
         server: {
             port: process.env.PORT,

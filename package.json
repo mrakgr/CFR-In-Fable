@@ -2,7 +2,8 @@
     "private": true,
     "scripts": {
         "start": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "proj1": "vite --mode proj1"
     },
     "devDependencies": {
         "@types/react": "^18.0.27",
