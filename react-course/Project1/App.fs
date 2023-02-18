@@ -1,19 +1,8 @@
 module App
 
-open Elmish
-open Elmish.React
+open Feliz
 
-#if DEBUG
-open Elmish.Debug
-open Elmish.HMR
-#endif
+open Browser.Dom
 
-Program.mkProgram Index.init Index.update Index.view
-#if DEBUG
-|> Program.withConsoleTrace
-#endif
-|> Program.withReactSynchronous "elmish-app"
-#if DEBUG
-|> Program.withDebugger
-#endif
-|> Program.run
+ReactDOM.createRoot(document.getElementById "app")
+    .render(Html.p "Hello, React!")

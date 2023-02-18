@@ -5,7 +5,6 @@
         <DefineConstants>FABLE_COMPILER</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="Index.fs" />
         <Compile Include="App.fs" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
