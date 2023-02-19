@@ -5,7 +5,11 @@
     <DefineConstants>FABLE_COMPILER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Navbar.fs" />
+    <None Include="Navbar.fs" />
+    <None Include="Challenges.fs" />
+    <Compile Include="components/Header.fs" />
+    <Compile Include="components/Footer.fs" />
+    <Compile Include="components/MainContent.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />

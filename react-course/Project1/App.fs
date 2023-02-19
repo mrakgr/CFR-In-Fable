@@ -1,10 +1,7 @@
 module App
+
 open Feliz
 
-let body =
-    Html.div [
-        MyHtml.navbar
-        Html.h1 "I'm learning React!"
-        ]
+let challenge2 = Html.div [ My.Html.header; My.Html.main_content; My.Html.footer ]
 
-ReactDOM.createRoot(Browser.Dom.document.getElementById "app").render(body)
+ReactDOM.createRoot(Browser.Dom.document.getElementById "app").render(challenge2)

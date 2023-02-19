@@ -2,7 +2,7 @@ source https://api.nuget.org/v3/index.json
 framework: net6.0
 storage: none
 
-nuget Fsharp.Core ~> 6
+nuget Fsharp.Core
 nuget Fable.Remoting.Giraffe
 nuget Saturn
 nuget Microsoft.AspNetCore.Authentication.JwtBearer ~> 6
@@ -17,6 +17,7 @@ nuget Fable.Mocha
 nuget Fable.React
 nuget Fable.Remoting.Client
 nuget Feliz
+nuget Feliz.Bulma 3.0.0-pre-002
 nuget Fulma
 
 nuget Fake.Core.Target
