@@ -10,13 +10,16 @@ module Html =
                 prop.className "nav"
                 prop.children [
                     Html.div [
-                        Html.img [
-                            prop.src logo
-                            prop.className "nav-logo"
-                            ]
-                        Html.strong [
-                            prop.className "nav-title"
-                            prop.text "ReactFacts"
+                        prop.className "nav-box"
+                        prop.children [
+                            Html.img [
+                                prop.src logo
+                                prop.className "nav-logo"
+                                ]
+                            Html.strong [
+                                prop.className "nav-title"
+                                prop.text "ReactFacts"
+                                ]
                             ]
                         ]
                     Html.ol [

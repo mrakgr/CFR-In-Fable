@@ -4,7 +4,7 @@ import {resolve} from 'node:path'
 
 // https://vitejs.dev/config/
 export default ({mode}) => {
-    process.env = { ...process.env, ...loadEnv(mode, process.cwd(), '') };
+    process.env = { ...process.env, ...loadEnv(mode, resolve(process.cwd(), 'env'), '') };
     const target = `http://localhost:${process.env.PROXY_PORT}`
     console.log(target);
 

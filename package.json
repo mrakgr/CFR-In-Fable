@@ -3,7 +3,8 @@
     "scripts": {
         "start": "vite",
         "build": "vite build",
-        "proj1": "vite --mode proj1"
+        "proj1": "vite --mode proj1",
+        "html1": "vite --mode html1"
     },
     "devDependencies": {
         "@types/react": "^18.0.27",

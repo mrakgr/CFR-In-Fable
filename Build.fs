@@ -12,8 +12,6 @@ let serverPath = Path.getFullName "src/Server"
 let clientPath = Path.getFullName "src/Client"
 let deployPath = Path.getFullName "deploy"
 
-let proj1Path = Path.getFullName "react-course/Project1"
-
 Target.create "Clean" (fun q ->
     Shell.cleanDir deployPath
     run dotnet "fable clean --yes" clientPath // Delete *.fs.js files created by Fable
@@ -56,7 +54,13 @@ Target.create "Format" (fun _ ->
 )
 
 Target.create "Project1" (fun _ ->
-    run dotnet "fable watch -o output -s --run npm run proj1" proj1Path
+    let path = Path.getFullName "react-course/Project1"
+    run dotnet "fable watch -o output -s --run npm run proj1" path
+)
+
+Target.create "Html1" (fun _ ->
+    let path = Path.getFullName "html-css-course/Project1"
+    run dotnet "fable watch -o output -s --run npm run html1" path
 )
 
 open Fake.Core.TargetOperators
@@ -74,6 +78,10 @@ let dependencies = [
     "Clean"
         ==> "InstallClient"
         ==> "Project1"
+
+    "Clean"
+        ==> "InstallClient"
+        ==> "Html1"
 
 ]
 

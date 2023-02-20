@@ -1,0 +1,14 @@
+p {
+    background-color: aqua;
+    padding: 10;
+    }
+
+nav > * {
+    /* display: flex;
+    justify-content: space-between; */
+    margin-right: 8px;
+    }
+
+div {
+    border: none;
+    }
