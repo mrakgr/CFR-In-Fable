@@ -1,14 +1,9 @@
-p {
-    background-color: aqua;
+.button-paragraph > p {
+    background-color: hsl(180, 100%, 95%);
     padding: 10;
     }
 
-nav > * {
-    /* display: flex;
-    justify-content: space-between; */
-    margin-right: 8px;
+.button-nav > * {
+    margin: 0 4;
     }
 
-div {
-    border: none;
-    }

@@ -63,6 +63,11 @@ Target.create "Html1" (fun _ ->
     run dotnet "fable watch -o output -s --run npm run html1" path
 )
 
+Target.create "Html2" (fun _ ->
+    let path = Path.getFullName "html-css-course/Project2"
+    run dotnet "fable watch -o output -s --run npm run html2" path
+)
+
 open Fake.Core.TargetOperators
 
 let dependencies = [
@@ -82,6 +87,10 @@ let dependencies = [
     "Clean"
         ==> "InstallClient"
         ==> "Html1"
+
+    "Clean"
+        ==> "InstallClient"
+        ==> "Html2"
 
 ]
 

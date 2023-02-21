@@ -2,12 +2,13 @@
     background-color: hsla(0, 100%, 60%);
     color: white;
     border: none;
-    height: 36px;
-    width: 105px;
+    min-height: 36px;
+    padding: 20 20 1 20;
     border-radius: 2px;
     cursor: pointer;
     opacity: 60%;
     transition: opacity 0.15s;
+    vertical-align: top;
 }
 
 .button-subscribe:hover {
@@ -21,14 +22,12 @@
 .button-join {
     background-color: white;
     color: hsl(202, 100%, 61%);
-    border-color: hsl(202, 100%, 61%);
-    border-style: solid;
-    border-width: 1px;
+    border: 1px solid hsl(202, 100%, 61%);
     border-radius: 2px;
-    height: 36px;
-    width: 60px;
+    min-height: 36px;
+    padding: 1 10;
     cursor: pointer;
-    transition: color 1s, background-color 1s, opacity 1s;
+    transition: color 0.15s, background-color 0.15s, opacity 0.15s;
 }
 
 .button-join:hover {
@@ -45,17 +44,20 @@
     color: white;
     border-width: 0px;
     border-radius: 18px;
-    height: 36px;
-    width: 74px;
+    min-height: 36px;
+    padding: 1 20;
     cursor: pointer;
     font-weight: bold;
     font-size: 15px;
+    transition: background-color 0.15s, box-shadow 0.15s;
 }
 
 .button-tweet:hover {
     background-color: hsl(208, 100%, 54%);
+    box-shadow: 0 3px 10px hsla(0, 0%, 0%, 0.15);
 }
 
 .button-tweet:active {
     background-color: hsl(208, 100%, 44%);
+    box-shadow: 0 3px 10px hsla(0, 0%, 0%, 0.3);
 }

@@ -1,0 +1,55 @@
+.videos-grid {
+    display: grid;
+    grid-template-columns: repeat(3,max-content);
+    column-gap: 10px;
+    row-gap: 20px;
+}
+
+.video-root-grid {
+    width: 320px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    row-gap: 10px;
+}
+
+.video-desc-grid {
+    display: grid;
+    grid-template-columns: 60px auto;
+}
+
+.video-desc-right-grid {
+    display: grid;
+    row-gap: 15px;
+    }
+
+.video-desc-right-bot-grid {
+    display: flex;
+    row-gap: 2px;
+    flex-direction: column;
+    justify-content: end;
+}
+
+.video {
+    width: inherit;
+    object-fit: cover;
+}
+
+.video-author-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    vertical-align: top;
+    border-radius: 50%;
+}
+
+.video-desc-text {
+    font-family: Roboto;
+    font-size: medium;
+    color: gray;
+}
+
+.video-title {
+    font-family: Roboto;
+    font-size: x-large;
+    font-weight: bold;
+}
