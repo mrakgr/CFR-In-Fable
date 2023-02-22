@@ -49,31 +49,39 @@ let thumbnail_elem (src, title : string, author : string, stats : string, date :
         ]
 
 let header =
+    let pad (x : int) = Html.div [prop.style [style.flexBasis (length.px x)]]
     Html.div [
         prop.className "header-box"
         prop.children [
             Html.div [
                 prop.className "home-box header-item"
                 prop.children [
+                    Html.img [prop.src (importDefault "./svgs/svgexport-4.svg")]
+                    pad 40
                     Html.img [prop.src (importDefault "./svgs/svgexport-5.svg")]
                     ]
             ]
 
             Html.div [
-                prop.className "outer-search-bar-box"
+                prop.className "search-bar-box"
                 prop.children [
+                    Html.input [
+                        prop.className "search-bar"
+                        prop.type' "text"
+                        prop.placeholder "Search"
+                        ]
                     Html.div [
-                        prop.className "search-bar-box"
+                        prop.className "search-bar-magni-glass-box"
                         prop.children [
-                            Html.input [
-                                prop.className "search-bar"
-                                prop.type' "text"
-                                prop.placeholder "Search"
+                            Html.img [prop.className "header-item"; prop.src (importDefault "./svgs/svgexport-6.svg")]
+                            Html.div [
+                                prop.className "tooltip"
+                                prop.text "qwerty"
                                 ]
-                            Html.img [prop.className "header-item"; prop.src (importDefault "./svgs/svgexport-6.svg"); prop.style [style.padding (0,10)]]
                             ]
                         ]
-                    Html.img [prop.className "header-item"; prop.src (importDefault "./svgs/svgexport-9.svg"); prop.style [style.padding (0,5)]]
+                    pad 15
+                    Html.img [prop.className "header-item"; prop.src (importDefault "./svgs/svgexport-9.svg")]
                     ]
                 ]
 
@@ -81,13 +89,14 @@ let header =
                 prop.className "profile-box header-item"
                 prop.children [
                     Html.img [prop.src (importDefault "./svgs/svgexport-10.svg")]
+                    pad 30
                     Html.img [prop.src (importDefault "./svgs/svgexport-11.svg")]
+                    pad 30
                     Html.img [prop.src (importDefault "./svgs/svgexport-12.svg")]
                     ]
                 ]
             ]
         ]
-
 
 let root =
     Html.div [
@@ -96,6 +105,18 @@ let root =
             prop.className "videos-grid"
             prop.children (List.map thumbnail_elem thumbnail_srcs)
             ]
+        // Html.pre [
+        //     // prop.style [
+        //     //     style.whitespace.
+        //     //     ]
+        //     prop.children[
+        //         Html.text "qwe              "
+        //         Html.br []
+        //         Html.text "asd "
+        //         Html.br []
+        //         Html.text "zxc "
+        //         ]
+        //     ]
         ]
 
 ReactDOM.createRoot(Browser.Dom.document.getElementById "app").render(root)
