@@ -1,0 +1,74 @@
+body {
+    margin: 0;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+.ui {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    flex-basis: 100%;
+    font-size: 3em;
+}
+
+.middle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    flex: 2;
+}
+
+.top {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.bottom {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    flex: 1;
+}
+
+.bottom-card {
+    display: flex;
+    justify-content: end;
+    flex: 1;
+}
+
+.bottom-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 0.9;
+}
+
+.open-card {
+    font-size: 2em;
+    background-color: hsl(34, 67%, 50%);
+    border: 1px solid;
+    padding-block: 0.1em;
+    padding-inline: 0.4ch;
+    height: fit-content;
+    user-select: none;
+}
+
+.action {
+    font-family: inherit;
+    flex-basis: 5em;
+    font-size: 0.6em;
+}
+

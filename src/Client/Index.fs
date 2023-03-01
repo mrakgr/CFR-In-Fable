@@ -39,12 +39,60 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
 open Feliz
 
 let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
-    Html.h1 [
-        Html.strong "I am bold"
+    let open_card (x : string) =
         Html.div [
-            Html.button [
-                Html.text "Click me."
+            prop.className "open-card"
+            prop.text x
+        ]
+    let padder (x : float) =
+        Html.div [
+            prop.className "action"
+            prop.style [style.flexBasis (length.em x)]
+        ]
+    let action (x : string) =
+        Html.button [
+            prop.className "action"
+            prop.text x
+        ]
+    Html.div [
+        prop.className "ui"
+        prop.children [
+            Html.div [
+                prop.className "top"
+                prop.children [
+                    open_card "K"
                 ]
             ]
-        Html.strong "I am strong"
+            Html.div [
+                prop.className "middle"
+                prop.children [
+                    Html.strong "Pot: 4"
+                    Html.strong "Total Pot: 6"
+                    Html.strong "Pot: 2"
+                ]
+            ]
+            Html.div [
+                prop.className "bottom"
+                prop.children [
+                    Html.div [
+                        prop.className "bottom-card"
+                        prop.children [
+                            open_card "J"
+                        ]
+                    ]
+                    Html.div [
+                        prop.className "bottom-actions"
+                        prop.children [
+                            padder 0
+                            action "Fold"
+                            action "Call"
+                            action "Raise"
+                            // padder 5
+                            padder 0
+                            padder 0
+                        ]
+                    ]
+                ]
+            ]
         ]
+    ]
