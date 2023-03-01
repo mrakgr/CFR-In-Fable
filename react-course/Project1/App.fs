@@ -2,6 +2,6 @@ module App
 
 open Feliz
 
-let challenge2 = Html.div [ My.Html.header; My.Html.main_content; My.Html.footer ]
+let root = Html.div [ My.Html.header; My.Html.main_content; My.Html.footer ]
 
-ReactDOM.createRoot(Browser.Dom.document.getElementById "app").render(challenge2)
+ReactDOM.createRoot(Browser.Dom.document.getElementById "app").render(root)

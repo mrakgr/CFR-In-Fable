@@ -58,6 +58,11 @@ Target.create "Project1" (fun _ ->
     run dotnet "fable watch -o output -s --run npm run proj1" path
 )
 
+Target.create "Project2" (fun _ ->
+    let path = Path.getFullName "react-course/Project2"
+    run dotnet "fable watch -o output -s --run npm run proj2" path
+)
+
 Target.create "Html1" (fun _ ->
     let path = Path.getFullName "html-css-course/Project1"
     run dotnet "fable watch -o output -s --run npm run html1" path

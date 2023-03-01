@@ -4,6 +4,7 @@
         "start": "vite",
         "build": "vite build",
         "proj1": "vite --mode proj1",
+        "proj2": "vite --mode proj2",
         "html1": "vite --mode html1",
         "html2": "vite --mode html2"
     },

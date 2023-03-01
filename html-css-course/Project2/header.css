@@ -61,8 +61,6 @@
     text-align: center;
     transition: opacity 1s;
     pointer-events: none;
-
-
 }
 
 .search-bar-magni-glass-box:hover .tooltip {

@@ -6,30 +6,25 @@ module Html =
 
     let header =
         Html.header [
-            Html.nav [
-                prop.className "nav"
-                prop.children [
-                    Html.div [
-                        prop.className "nav-box"
-                        prop.children [
-                            Html.img [
-                                prop.src logo
-                                prop.className "nav-logo"
-                                ]
-                            Html.strong [
-                                prop.className "nav-title"
-                                prop.text "ReactFacts"
-                                ]
+            prop.className "header"
+            prop.children [
+                Html.div [
+                    prop.className "header-left"
+                    prop.children [
+                        Html.img [
+                            prop.className "header-logo"
+                            prop.src logo
+                            ]
+                        Html.div [prop.style [style.flexBasis (length.em 1)]]
+                        Html.div [
+                            prop.className "header-title"
+                            prop.text "React Facts"
                             ]
                         ]
-                    Html.ol [
-                        prop.className "nav-items"
-                        prop.children [
-                            Html.li "Pricing"
-                            Html.li "About"
-                            Html.li "Contact"
-                            ]
-                        ]
+                    ]
+                Html.div [
+                    prop.className "header-about"
+                    prop.text "React Course - Project 1"
                     ]
                 ]
             ]
