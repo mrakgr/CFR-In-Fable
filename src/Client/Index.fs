@@ -39,12 +39,26 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
 open Feliz
 
 let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
-    Html.h1 [
-        Html.strong "I am bold"
-        Html.div [
-            Html.button [
-                Html.text "Click me."
+    Html.div [
+        prop.className "game-ui"
+        prop.children [
+            Html.div [
+                prop.className "top"
+                prop.children [
+                    Html.text "top"
                 ]
             ]
-        Html.strong "I am strong"
+            Html.div [
+                prop.className "middle"
+                prop.children [
+                    Html.text "middle"
+                ]
+            ]
+            Html.div [
+                prop.className "bottom"
+                prop.children [
+                    Html.text "bottom"
+                ]
+            ]
         ]
+    ]
