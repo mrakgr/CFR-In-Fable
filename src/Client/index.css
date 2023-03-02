@@ -1,3 +1,7 @@
+:root {
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
 body {
     margin: 0;
 }
@@ -15,8 +19,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: blue;
-    color: white;
     font-size: 3em;
     width: 100%;
     flex: 1;
@@ -26,9 +28,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white;
     font-size: 3em;
-    background-color: red;
     width: 100%;
     flex: 1;
 }
@@ -37,9 +37,18 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white;
     font-size: 3em;
-    background-color: green;
     width: 100%;
     flex: 1;
+}
+
+.card {
+    display: flex;
+    justify-content: center;
+    font-size: 2em;
+    border: 3px solid;
+    padding: 0 0.25ch;
+    background-color: burlywood;
+    user-select: none;
+    width: 1ch;
 }

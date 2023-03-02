@@ -39,25 +39,32 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
 open Feliz
 
 let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
+    let card (x : string) =
+        Html.div [
+            prop.className "card"
+            prop.children [
+                Html.strong x
+            ]
+        ]
     Html.div [
         prop.className "game-ui"
         prop.children [
             Html.div [
                 prop.className "top"
                 prop.children [
-                    Html.text "top"
+                    card "K"
                 ]
             ]
             Html.div [
                 prop.className "middle"
                 prop.children [
-                    Html.text "middle"
+                    card "Q"
                 ]
             ]
             Html.div [
                 prop.className "bottom"
                 prop.children [
-                    Html.text "bottom"
+                    card "J"
                 ]
             ]
         ]
