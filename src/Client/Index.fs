@@ -46,6 +46,15 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
                 Html.strong x
             ]
         ]
+    let button (x : string) =
+        Html.div [
+            prop.children [
+                Html.button [
+                    prop.className "action"
+                    prop.text x
+                ]
+            ]
+        ]
     Html.div [
         prop.className "game-ui"
         prop.children [
@@ -76,6 +85,9 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
                 prop.className "bottom"
                 prop.children [
                     card "J"
+                    button "Fold"
+                    button "Call"
+                    button "Raise"
                 ]
             ]
         ]
