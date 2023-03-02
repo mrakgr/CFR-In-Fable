@@ -47,11 +47,20 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
     let padder (x : float) =
         Html.div [
             prop.className "action"
-            prop.style [style.flexBasis (length.em x)]
+            prop.style [
+                style.flexBasis (length.em x)
+                style.height (length.em 2)
+                style.flexShrink 10
+                ]
         ]
     let action (x : string) =
         Html.button [
             prop.className "action"
+            prop.text x
+        ]
+    let pot (x : int) =
+        Html.div [
+            prop.className "pot"
             prop.text x
         ]
     Html.div [
@@ -66,9 +75,11 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
             Html.div [
                 prop.className "middle"
                 prop.children [
-                    Html.strong "Pot: 4"
-                    Html.strong "Total Pot: 6"
-                    Html.strong "Pot: 2"
+                    Html.div [
+                        open_card "Q"
+                        padder 1
+                        pot 4
+                    ]
                 ]
             ]
             Html.div [
@@ -83,13 +94,12 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
                     Html.div [
                         prop.className "bottom-actions"
                         prop.children [
-                            padder 0
+                            padder 3
                             action "Fold"
                             action "Call"
                             action "Raise"
                             // padder 5
-                            padder 0
-                            padder 0
+                            padder 5
                         ]
                     ]
                 ]

@@ -2,7 +2,7 @@ body {
     margin: 0;
 }
 
-.main {
+#root {
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -15,17 +15,24 @@ body {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    flex-basis: 100%;
+    flex: 1;
     font-size: 3em;
 }
 
 .middle {
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     user-select: none;
-    flex: 2;
+    width: 50%;
+    flex: 1;
+}
+
+.middle > div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
 }
 
 .top {
@@ -72,3 +79,8 @@ body {
     font-size: 0.6em;
 }
 
+.pot {
+    font-size: 1.5em;
+    border: 3px solid;
+    padding: 0 0.2ch;
+}
