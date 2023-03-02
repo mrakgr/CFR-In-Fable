@@ -1,86 +1,84 @@
+:root {
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
 body {
     margin: 0;
 }
 
-#root {
+.game-ui {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    justify-content: space-around;
+    align-items: center;
     width: 100vw;
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    height: 100vh;
 }
 
-.ui {
+.top {
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    flex: 1;
     font-size: 3em;
+    width: 100%;
+    flex: 1;
 }
 
 .middle {
     display: flex;
     justify-content: center;
     align-items: center;
-    user-select: none;
-    width: 50%;
-    flex: 1;
-}
-
-.middle > div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
-}
-
-.top {
-    display: flex;
-    align-items: center;
+    font-size: 3em;
+    width: 100%;
     flex: 1;
 }
 
 .bottom {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    font-size: 3em;
     width: 100%;
     flex: 1;
 }
 
-.bottom-card {
+.card {
+    display: flex;
+    justify-content: center;
+    font-size: 2em;
+    border: 3px solid;
+    padding: 0 0.25ch;
+    background-color: burlywood;
+    user-select: none;
+    width: 1ch;
+}
+
+.pot-size {
+    font-size: 1.5em;
+    border: 3px solid;
+    user-select: none;
+    padding: 0 0.5ch;
+}
+
+.action {
+    font-family: inherit;
+    font-size: 0.75em;
+    flex-basis: 3em;
+    border: 3px solid;
+}
+
+.action-padder {
+    font-size: 0.75em;
+}
+
+.bottom-left {
     display: flex;
     justify-content: end;
     flex: 1;
 }
 
-.bottom-actions {
+.bottom-right {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: space-evenly;
     flex: 0.9;
-}
-
-.open-card {
-    font-size: 2em;
-    background-color: hsl(34, 67%, 50%);
-    border: 1px solid;
-    padding-block: 0.1em;
-    padding-inline: 0.4ch;
-    height: fit-content;
-    user-select: none;
-}
-
-.action {
-    font-family: inherit;
-    flex-basis: 5em;
-    font-size: 0.6em;
-}
-
-.pot {
-    font-size: 1.5em;
-    border: 3px solid;
-    padding: 0 0.2ch;
 }

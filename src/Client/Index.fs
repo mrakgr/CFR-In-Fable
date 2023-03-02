@@ -39,46 +39,48 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
 open Feliz
 
 let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
-    let open_card (x : string) =
+    let card (x : string) =
         Html.div [
-            prop.className "open-card"
-            prop.text x
+            prop.className "card"
+            prop.children [
+                Html.strong x
+            ]
         ]
-    let padder (x : float) =
-        Html.div [
-            prop.className "action"
-            prop.style [
-                style.flexBasis (length.em x)
-                style.height (length.em 2)
-                style.flexShrink 10
-                ]
-        ]
-    let action (x : string) =
+    let button (x : string) =
         Html.button [
             prop.className "action"
             prop.text x
         ]
-    let pot (x : int) =
+    let padder_template (className : string)  (x : float) =
         Html.div [
-            prop.className "pot"
-            prop.text x
+            prop.className className
+            prop.style [
+                style.flexBasis (length.em x)
+            ]
         ]
+
+    let padder_middle = padder_template "middle-padder"
+    let padder_action = padder_template "action-padder"
+
     Html.div [
-        prop.className "ui"
+        prop.className "game-ui"
         prop.children [
             Html.div [
                 prop.className "top"
                 prop.children [
-                    open_card "K"
+                    card "K"
                 ]
             ]
             Html.div [
                 prop.className "middle"
                 prop.children [
+                    card "Q"
+                    padder_middle 1
                     Html.div [
-                        open_card "Q"
-                        padder 1
-                        pot 4
+                        prop.className "pot-size"
+                        prop.children [
+                            Html.text "4"
+                        ]
                     ]
                 ]
             ]
@@ -86,20 +88,19 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
                 prop.className "bottom"
                 prop.children [
                     Html.div [
-                        prop.className "bottom-card"
+                        prop.className "bottom-left"
                         prop.children [
-                            open_card "J"
+                            card "J"
                         ]
                     ]
                     Html.div [
-                        prop.className "bottom-actions"
+                        prop.className "bottom-right"
                         prop.children [
-                            padder 3
-                            action "Fold"
-                            action "Call"
-                            action "Raise"
-                            // padder 5
-                            padder 5
+                            button "Fold"
+                            button "Call"
+                            button "Raise"
+                            // padder_action 3
+                            padder_action 0
                         ]
                     ]
                 ]
