@@ -47,14 +47,21 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
             ]
         ]
     let button (x : string) =
+        Html.button [
+            prop.className "action"
+            prop.text x
+        ]
+    let padder_template (className : string)  (x : float) =
         Html.div [
-            prop.children [
-                Html.button [
-                    prop.className "action"
-                    prop.text x
-                ]
+            prop.className className
+            prop.style [
+                style.flexBasis (length.em x)
             ]
         ]
+
+    let padder_middle = padder_template "middle-padder"
+    let padder_action = padder_template "action-padder"
+
     Html.div [
         prop.className "game-ui"
         prop.children [
@@ -68,11 +75,7 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
                 prop.className "middle"
                 prop.children [
                     card "Q"
-                    Html.div [
-                        prop.style [
-                            style.flexBasis (length.em 1)
-                        ]
-                    ]
+                    padder_middle 1
                     Html.div [
                         prop.className "pot-size"
                         prop.children [
@@ -84,10 +87,22 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
             Html.div [
                 prop.className "bottom"
                 prop.children [
-                    card "J"
-                    button "Fold"
-                    button "Call"
-                    button "Raise"
+                    Html.div [
+                        prop.className "bottom-left"
+                        prop.children [
+                            card "J"
+                        ]
+                    ]
+                    Html.div [
+                        prop.className "bottom-right"
+                        prop.children [
+                            button "Fold"
+                            button "Call"
+                            button "Raise"
+                            // padder_action 3
+                            padder_action 0
+                        ]
+                    ]
                 ]
             ]
         ]

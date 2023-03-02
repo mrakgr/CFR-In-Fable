@@ -62,5 +62,23 @@ body {
 
 .action {
     font-family: inherit;
-    font-size: 1em;
+    font-size: 0.75em;
+    flex-basis: 3em;
+    border: 3px solid;
+}
+
+.action-padder {
+    font-size: 0.75em;
+}
+
+.bottom-left {
+    display: flex;
+    justify-content: end;
+    flex: 1;
+}
+
+.bottom-right {
+    display: flex;
+    justify-content: space-evenly;
+    flex: 0.9;
 }
