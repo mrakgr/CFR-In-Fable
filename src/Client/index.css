@@ -52,3 +52,10 @@ body {
     user-select: none;
     width: 1ch;
 }
+
+.pot-size {
+    font-size: 1.5em;
+    border: 3px solid;
+    user-select: none;
+    padding: 0 0.5ch;
+}

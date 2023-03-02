@@ -59,6 +59,17 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
                 prop.className "middle"
                 prop.children [
                     card "Q"
+                    Html.div [
+                        prop.style [
+                            style.flexBasis (length.em 1)
+                        ]
+                    ]
+                    Html.div [
+                        prop.className "pot-size"
+                        prop.children [
+                            Html.text "4"
+                        ]
+                    ]
                 ]
             ]
             Html.div [
