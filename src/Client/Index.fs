@@ -89,6 +89,9 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
                 prop.children [
                     Html.div [
                         prop.className "bottom-left"
+                    ]
+                    Html.div [
+                        prop.className "bottom-middle"
                         prop.children [
                             card "J"
                         ]
@@ -100,7 +103,6 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
                             button "Call"
                             button "Raise"
                             // padder_action 3
-                            padder_action 0
                         ]
                     ]
                 ]

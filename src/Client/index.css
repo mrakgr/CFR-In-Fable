@@ -72,13 +72,18 @@ body {
 }
 
 .bottom-left {
+    flex: 1;
+}
+
+.bottom-middle {
     display: flex;
-    justify-content: end;
+    justify-content: center;
+    align-items: center;
     flex: 1;
 }
 
 .bottom-right {
     display: flex;
-    justify-content: space-evenly;
-    flex: 0.9;
+    justify-content: start;
+    flex: 1;
 }
