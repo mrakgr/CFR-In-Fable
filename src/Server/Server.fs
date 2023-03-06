@@ -21,7 +21,6 @@ let server =
     Bridge.mkServer endpoint init update
     |> Bridge.run Giraffe.server
 
-
 let webApp = server
 
 let app =
