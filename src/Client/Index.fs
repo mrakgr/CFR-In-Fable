@@ -99,6 +99,7 @@ let view (model: Model) (dispatch: Msg -> unit) : ReactElement =
                     Html.div [
                         prop.className "bottom-right"
                         prop.children [
+                            padder_action 3
                             button "Fold"
                             button "Call"
                             button "Raise"
