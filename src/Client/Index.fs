@@ -79,7 +79,7 @@ module View =
                             prop.className "bottom-left"
                         ]
                         Html.div [
-                            prop.className "bottom-mid"
+                            prop.className "bottom-middle"
                             prop.children [
                                 card "J"
                             ]

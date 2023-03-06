@@ -122,9 +122,6 @@ body {
 }
 
 .bottom-middle {
-    display: flex;
-    justify-content: end;
-    flex: 1;
 }
 
 .bottom-right {
