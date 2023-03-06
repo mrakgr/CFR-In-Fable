@@ -2,6 +2,8 @@ source https://api.nuget.org/v3/index.json
 framework: net6.0
 storage: none
 
+nuget Elmish.Bridge.Client
+nuget Elmish.Bridge.Giraffe
 nuget Fsharp.Core
 nuget Fable.Remoting.Giraffe
 nuget Saturn

@@ -6,7 +6,6 @@ import {resolve} from 'node:path'
 export default ({mode}) => {
     process.env = { ...process.env, ...loadEnv(mode, resolve(process.cwd(), 'env'), '') };
     const target = `http://localhost:${process.env.PROXY_PORT}`
-    console.log(target);
 
     return defineConfig({
         root: process.env.ROOT,

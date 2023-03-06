@@ -1,51 +1,33 @@
 module Server
 
-open Fable.Remoting.Server
-open Fable.Remoting.Giraffe
 open Saturn
 
 open Shared
+open Elmish.Bridge
 
-module Storage =
-    let todos = ResizeArray()
+type Model = {
+    message_list : string list
+}
 
-    let addTodo (todo: Todo) =
-        if Todo.isValid todo.Description then
-            todos.Add todo
-            Ok()
-        else
-            Error "Invalid todo"
+let init _ _ = {message_list=[]}, []
+let update dispact_client msg model =
+        match msg with
+        | ConfirmYouGotIt x ->
+            let messages = x :: model.message_list
+            dispact_client (MessageList messages)
+            {model with message_list=messages}, []
 
-    do
-        addTodo (Todo.create "Create new SAFE project")
-        |> ignore
+let server =
+    Bridge.mkServer endpoint init update
+    |> Bridge.run Giraffe.server
 
-        addTodo (Todo.create "Write your app") |> ignore
-        addTodo (Todo.create "Ship it !!!") |> ignore
 
-let todosApi =
-    { getTodos = fun () -> async { return Storage.todos |> List.ofSeq }
-      addTodo =
-        fun todo ->
-            async {
-                return
-                    match Storage.addTodo todo with
-                    | Ok () -> todo
-                    | Error e -> failwith e
-            } }
-
-let webApp =
-    Remoting.createApi ()
-    |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.fromValue todosApi
-    |> Remoting.buildHttpHandler
+let webApp = server
 
 let app =
     application {
         use_router webApp
-        memory_cache
-        use_static "public"
-        use_gzip
+        app_config Giraffe.useWebSockets
     }
 
 [<EntryPoint>]

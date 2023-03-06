@@ -6,6 +6,7 @@
     </PropertyGroup>
     <ItemGroup>
         <None Include="index.html" />
+        <None Include="index.css" />
         <None Include="paket.references" />
         <Compile Include="Index.fs" />
         <Compile Include="App.fs" />
