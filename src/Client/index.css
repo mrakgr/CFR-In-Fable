@@ -64,22 +64,31 @@ body {
 .top {
     display: flex;
     justify-content: center;
-    align-items: center;
+    /*align-items: center;*/
     font-size: 3em;
     width: 100%;
+    flex: 1;
+}
+
+.top-left {
+    display: flex;
+    justify-content: end;
+    align-items: end;
+    flex: 1;
+}
+
+.top-middle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0.3;
+}
+
+.top-right {
     flex: 1;
 }
 
 .middle {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 3em;
-    width: 100%;
-    flex: 1;
-}
-
-.bottom {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -117,15 +126,32 @@ body {
     font-size: 0.75em;
 }
 
+.bottom {
+    display: flex;
+    justify-content: center;
+    /*align-items: center;*/
+    font-size: 3em;
+    width: 100%;
+    flex: 1;
+}
+
 .bottom-left {
+    display: flex;
+    justify-content: end;
+    align-items: start;
     flex: 1;
 }
 
 .bottom-middle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0.3;
 }
 
 .bottom-right {
     display: flex;
     justify-content: start;
+    align-items: center;
     flex: 1;
 }

@@ -2,11 +2,11 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>Leduc</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="test.fsx" />
-        <Compile Include="Sampler.fs" />
+        <Compile Include="Types.fs" />
         <Compile Include="Game.fs" />
     </ItemGroup>
 

@@ -3,42 +3,53 @@ module Index
 open Elmish
 open Shared
 open Elmish.Bridge
+open Leduc.Types
 
 type MsgClient =
-    | ClickedOn of string
+    | ClickedOn of Action
     | GotFromServer of MsgServerToClient
 
 type Model = {
+    leduc : Client.Model
     message_list : string list
 }
 
-let init () = {message_list = []}, []
+let init () : Model * Cmd<_> =
+    { leduc = Client.def; message_list = [] }, Cmd.ofEffect (fun disp -> disp (GotFromServer (MessageList [])))
 
-let update msg (model : Model)  =
+let update msg (model : Model) : Model * Cmd<unit>  =
     match msg with
-    | ClickedOn x ->
-        Bridge.Send(ConfirmYouGotIt x)
-        model, []
+    | ClickedOn x -> model, Cmd.bridgeSend(MsgServer.ClickedOn x)
     | GotFromServer (MessageList l) ->
-        {model with message_list=l},[]
+        {model with message_list=l}, []
+    | GotFromServer (LeducModel x) ->
+        {model with leduc=x}, []
 
 module View =
     open Feliz
 
-    let game_ui dispatch =
-        let card (x : string) =
+    let game_ui dispatch (model : Client.Model) =
+        let card (x : Card option) =
+            let card =
+                match x with
+                | Some King -> "K"
+                | Some Queen -> "Q"
+                | Some Jack -> "J"
+                | None -> " "
             Html.div [
                 prop.className "card"
                 prop.children [
-                    Html.strong x
+                    Html.strong card
                 ]
             ]
-        let button (x : string) =
+        let button (x : string) is_allowed action =
             Html.button [
                 prop.className "action"
                 prop.text x
-                prop.onClick (fun _ -> dispatch (ClickedOn $"Clicked on %s{x}!"))
+                prop.onClick (fun _ -> dispatch (ClickedOn action))
+                prop.disabled (not is_allowed)
             ]
+
         let padder_template (className : string)  (x : float) =
             Html.div [
                 prop.className className
@@ -48,7 +59,7 @@ module View =
             ]
 
         let padder_middle = padder_template "middle-padder"
-        let padder_action = padder_template "action-padder"
+        // let padder_action = padder_template "action-padder"
 
         Html.div [
             prop.className "game-ui border"
@@ -56,18 +67,37 @@ module View =
                 Html.div [
                     prop.className "top"
                     prop.children [
-                        card "K"
+                        Html.div [
+                            prop.className "top-left"
+                            prop.children [
+                                Html.div [
+                                    prop.className "pot-size"
+                                    prop.children [
+                                        Html.text model.p2_pot
+                                    ]
+                                ]
+                            ]
+                        ]
+                        Html.div [
+                            prop.className "top-middle"
+                            prop.children [
+                                card model.p2_card
+                            ]
+                        ]
+                        Html.div [
+                            prop.className "top-right"
+                        ]
                     ]
                 ]
                 Html.div [
                     prop.className "middle"
                     prop.children [
-                        card "Q"
+                        card model.community_card
                         padder_middle 1
                         Html.div [
                             prop.className "pot-size"
                             prop.children [
-                                Html.text "4"
+                                Html.text (model.p1_pot + model.p2_pot)
                             ]
                         ]
                     ]
@@ -77,21 +107,27 @@ module View =
                     prop.children [
                         Html.div [
                             prop.className "bottom-left"
+                            prop.children [
+                                Html.div [
+                                    prop.className "pot-size"
+                                    prop.children [
+                                        Html.text model.p1_pot
+                                    ]
+                                ]
+                            ]
                         ]
                         Html.div [
                             prop.className "bottom-middle"
                             prop.children [
-                                card "J"
+                                card model.p1_card
                             ]
                         ]
                         Html.div [
                             prop.className "bottom-right"
                             prop.children [
-                                padder_action 3
-                                button "Fold"
-                                button "Call"
-                                button "Raise"
-                                // padder_action 3
+                                button "Fold" model.allow_fold Fold
+                                button "Call" model.allow_call Call
+                                button "Raise" model.allow_raise Raise
                             ]
                         ]
                     ]
@@ -103,7 +139,7 @@ module View =
         Html.div [
             prop.className "ui"
             prop.children [
-                game_ui dispatch
+                game_ui dispatch model.leduc
                 Html.div [
                     prop.className "message-ui border"
                     prop.children (model.message_list |> List.map Html.p)
