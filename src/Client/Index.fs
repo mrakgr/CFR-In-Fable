@@ -7,28 +7,26 @@ open Leduc.Types
 
 type MsgClient =
     | ClickedOn of Action
-    | GotFromServer of MsgServerToClient
+    | FromServer of MsgServerToClient
 
-type Model = {
-    leduc : Client.Model
+type ClientModel = {
+    leduc_model : LeducModel
     message_list : string list
+    allowed_actions : AllowedActions
 }
 
-let init () : Model * Cmd<_> =
-    { leduc = Client.def; message_list = [] }, Cmd.ofEffect (fun disp -> disp (GotFromServer (MessageList [])))
+let init () : ClientModel * Cmd<_> =
+    { leduc_model = LeducModel.Default; message_list = []; allowed_actions = AllowedActions.Default}, []
 
-let update msg (model : Model) : Model * Cmd<unit>  =
+let update msg (model : ClientModel) : ClientModel * Cmd<_>  =
     match msg with
-    | ClickedOn x -> model, Cmd.bridgeSend(MsgServer.ClickedOn x)
-    | GotFromServer (MessageList l) ->
-        {model with message_list=l}, []
-    | GotFromServer (LeducModel x) ->
-        {model with leduc=x}, []
+    | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
+    | FromServer (GameState(leduc_model, message_list, allowed_actions)) -> {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
 
 module View =
     open Feliz
 
-    let game_ui dispatch (model : Client.Model) =
+    let game_ui dispatch (model : LeducModel, allowed_actions : AllowedActions) =
         let card (x : Card option) =
             let card =
                 match x with
@@ -42,12 +40,12 @@ module View =
                     Html.strong card
                 ]
             ]
-        let button (x : string) is_allowed action =
+        let button (x : string) action =
             Html.button [
                 prop.className "action"
                 prop.text x
                 prop.onClick (fun _ -> dispatch (ClickedOn action))
-                prop.disabled (not is_allowed)
+                prop.disabled (not (allowed_actions.IsAllowed action))
             ]
 
         let padder_template (className : string)  (x : float) =
@@ -125,9 +123,9 @@ module View =
                         Html.div [
                             prop.className "bottom-right"
                             prop.children [
-                                button "Fold" model.allow_fold Fold
-                                button "Call" model.allow_call Call
-                                button "Raise" model.allow_raise Raise
+                                button "Fold" Fold
+                                button "Call" Call
+                                button "Raise" Raise
                             ]
                         ]
                     ]
@@ -135,11 +133,11 @@ module View =
             ]
         ]
 
-    let view (model: Model) dispatch : ReactElement =
+    let view (model: ClientModel) dispatch : ReactElement =
         Html.div [
             prop.className "ui"
             prop.children [
-                game_ui dispatch model.leduc
+                game_ui dispatch (model.leduc_model, model.allowed_actions)
                 Html.div [
                     prop.className "message-ui border"
                     prop.children (model.message_list |> List.map Html.p)

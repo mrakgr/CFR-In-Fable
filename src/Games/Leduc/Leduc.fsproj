@@ -8,6 +8,11 @@
     <ItemGroup>
         <Compile Include="Types.fs" />
         <Compile Include="Game.fs" />
+        <Compile Include="Implementation.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Utils\Utils.fsproj" />
     </ItemGroup>
 
 </Project>

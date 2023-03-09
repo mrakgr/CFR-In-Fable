@@ -14,11 +14,11 @@ let private parallel_bit_deposit_u64 (value, mask) =
 
     loop 0UL 0 0
 
-/// Samples an action from an array given a mask.
+/// Samples an element from an array given a mask.
 /// Returns the sampled action and the new mask.
 /// Whem mask = 0, it samples a completely random action.
 /// The pop count of the mask should be less than the length of the array
-let sample (actions : 'action []) (mask : uint64) =
+let sample (actions : 'el []) (mask : uint64) =
     let i =
         let popcnt = Numerics.BitOperations.PopCount mask
         let i = Random.Shared.Next(0, actions.Length - popcnt)

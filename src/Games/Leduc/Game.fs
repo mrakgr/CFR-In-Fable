@@ -15,6 +15,7 @@ let compare_hands (community_card : Card) (p1 : Player, p2 : Player) =
     | _ -> compare (order a) (order b)
 
 let raiseBy amount (p: Player) = p.pot + amount
+
 let game (ret : ILeducGame<'r>) : 'r =
     ret.chance_init(0, 0UL, fun (c1,mask) ->
     ret.chance_init(1, mask, fun (c2,mask) ->

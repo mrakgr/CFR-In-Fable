@@ -3,12 +3,14 @@ module Shared
 open Leduc.Types
 
 type MsgServerToClient =
-    | LeducModel of Client.Model
-    | MessageList of string list
-type MsgServer =
-    | EndGame of reward: float
-    | GetAction of Server.Model
-    | ClickedOn of Action
+    | GameState of LeducModel * string list * AllowedActions
+
+type MsgServerFromClient =
+    | SelectedAction of Action
     | StartGame
+
+type MsgServer =
+    | FromLeducGame of MsgLeduc
+    | FromClient of MsgServerFromClient
 
 let endpoint = "/socket"
