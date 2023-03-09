@@ -10,7 +10,8 @@ type ILeducGame<'r> =
     abstract member chance_community_card : mask: Mask * cont: (Card -> 'r) -> 'r
     abstract member action_round_one : p1: Player * p2: Player * raises_left: int * cont: (Action -> 'r) -> 'r
     abstract member action_round_two : p1: Player * p2: Player * raises_left: int * community_card: Card * cont: (Action -> 'r) -> 'r
-    abstract member terminal : id: int * pot: int -> 'r
+    abstract member terminal_fold : p1: Player * id: int * pot: int -> 'r
+    abstract member terminal_call : p1: Player * p2: Player * community_card: Card * id: int * pot: int -> 'r
 
 type LeducModel = {
     p1_card: Card option
@@ -38,6 +39,7 @@ type AllowedActions = { is_fold : bool; is_call : bool; is_raise : bool } with
         if q.is_raise then Raise
     |]
     static member Default = { is_fold = false; is_call = false; is_raise = false }
+    static member FromModel(model : LeducModel, raises_left : int) = {is_fold=model.p1_pot <> model.p2_pot; is_call=true; is_raise=raises_left > 0}
 
 type MsgLeduc =
     | Action of LeducModel * string list * AllowedActions * (Action -> unit)

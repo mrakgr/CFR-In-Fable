@@ -22,20 +22,22 @@ let game (ret : ILeducGame<'r>) : 'r =
 
     let rec round_two raises_left (p1,p2) community_card =
         ret.action_round_two(p1, p2, raises_left, community_card, function
-        | Fold -> ret.terminal(p2.id, p1.pot)
+        | Fold -> ret.terminal_fold(p1, p2.id, p1.pot)
         | Call ->
             let p1 = {p1 with pot=p2.pot}
-            ret.terminal <|
+            let id, pot =
                 match compare_hands community_card (p1,p2) with
-                | x when x > 0 -> p1.id, p2.pot
+                | 1 -> p1.id, p2.pot
                 | 0 -> p1.id, 0
-                | _ -> p2.id, p1.pot
+                | -1 -> p2.id, p1.pot
+                | _ -> failwith "impossible"
+            ret.terminal_call(p1,p2,community_card,id,pot)
         | Raise -> round_two (raises_left-1) (p2,{p1 with pot=raiseBy 4 p2}) community_card
         )
 
     let rec round_one raises_left (p1, p2) =
         ret.action_round_one(p1, p2, raises_left, function
-        | Fold -> ret.terminal(p2.id, p1.pot)
+        | Fold -> ret.terminal_fold(p1, p2.id, p1.pot)
         | Call ->
             let p1 = {p1 with pot=p2.pot}
             ret.chance_community_card(mask, round_two 2 (if p1.id = 0 then p1,p2 else p2,p1))
