@@ -4,10 +4,9 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Shared.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Games\Leduc\Leduc.fsproj" />
+    <Compile Include="Constants.fs" />
+    <Compile Include="LeducTypes.fs" />
+    <Compile Include="Messages.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

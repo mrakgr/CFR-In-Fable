@@ -1,6 +1,6 @@
-module Shared
+module Shared.Messages
 
-open Leduc.Types
+open Shared.Leduc.Types
 
 type MsgServerToClient =
     | GameState of LeducModel * string list * AllowedActions
@@ -13,4 +13,3 @@ type MsgServer =
     | FromLeducGame of MsgLeduc
     | FromClient of MsgServerFromClient
 
-let endpoint = "/socket"

@@ -21,21 +21,16 @@ body {
     height: 100vh;
 }
 
-.game-ui {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
-    flex: 4;
-}
-
 .message-ui {
     flex: 1;
     width: 100%;
     padding: 0 1em;
     font-size: 1.5em;
     overflow: auto;
+}
+
+.message-ui > p {
+    margin: 0.125em 0;
 }
 
 .message-ui::-webkit-scrollbar {
@@ -64,7 +59,6 @@ body {
 .top {
     display: flex;
     justify-content: center;
-    /*align-items: center;*/
     font-size: 3em;
     width: 100%;
     flex: 1;
@@ -154,4 +148,48 @@ body {
     justify-content: start;
     align-items: center;
     flex: 1;
+}
+
+.menu-game-ui {
+    display: flex;
+    flex-direction: row;
+    flex: 4;
+    width: 100%;
+}
+
+.game-ui {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    flex: 1;
+}
+
+.menu-ui {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-basis: 10em;
+}
+
+.menu-button {
+    font-size: 2em;
+    border: 3px solid #d9d9d9;
+    padding: 0.5em;
+    width: 100%;
+    border-radius: 10%;
+    background-color: hsl(0, 0%, 35%);
+    color: white;
+}
+
+.id-pot {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+.id {
+    margin: 0.2em 0;
 }

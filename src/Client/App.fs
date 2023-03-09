@@ -11,7 +11,7 @@ open Elmish.HMR
 
 Program.mkProgram Index.init Index.update Index.view
 |> Program.withBridgeConfig (
-        Bridge.endpoint Shared.endpoint
+        Bridge.endpoint Shared.Constants.endpoint
         |> Bridge.withMapping Index.FromServer
         )
 |> Program.withReactSynchronous "elmish-app"

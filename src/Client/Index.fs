@@ -1,12 +1,13 @@
 module Index
 
 open Elmish
-open Shared
 open Elmish.Bridge
-open Leduc.Types
+open Shared.Messages
+open Shared.Leduc.Types
 
 type MsgClient =
     | ClickedOn of Action
+    | StartGame
     | FromServer of MsgServerToClient
 
 type ClientModel = {
@@ -21,7 +22,9 @@ let init () : ClientModel * Cmd<_> =
 let update msg (model : ClientModel) : ClientModel * Cmd<_>  =
     match msg with
     | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
-    | FromServer (GameState(leduc_model, message_list, allowed_actions)) -> {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
+    | StartGame -> model, Cmd.bridgeSend(FromClient MsgServerFromClient.StartGame)
+    | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
+        {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
 
 module View =
     open Feliz
@@ -45,7 +48,7 @@ module View =
                 prop.className "action"
                 prop.text x
                 prop.onClick (fun _ -> dispatch (ClickedOn action))
-                prop.disabled (not (allowed_actions.IsAllowed action))
+                prop.disabled (not (AllowedActions.IsAllowed allowed_actions action))
             ]
 
         let padder_template (className : string)  (x : float) =
@@ -59,6 +62,18 @@ module View =
         let padder_middle = padder_template "middle-padder"
         // let padder_action = padder_template "action-padder"
 
+        let pot (i : int) =
+            Html.div [
+                prop.className "pot-size"
+                prop.text i
+            ]
+
+        let id (s : string) =
+            Html.div [
+                prop.className "id"
+                prop.text s
+            ]
+
         Html.div [
             prop.className "game-ui border"
             prop.children [
@@ -69,9 +84,10 @@ module View =
                             prop.className "top-left"
                             prop.children [
                                 Html.div [
-                                    prop.className "pot-size"
+                                    prop.className "id-pot"
                                     prop.children [
-                                        Html.text model.p2_pot
+                                        id model.p2_id
+                                        pot model.p2_pot
                                     ]
                                 ]
                             ]
@@ -92,12 +108,7 @@ module View =
                     prop.children [
                         card model.community_card
                         padder_middle 1
-                        Html.div [
-                            prop.className "pot-size"
-                            prop.children [
-                                Html.text (model.p1_pot + model.p2_pot)
-                            ]
-                        ]
+                        pot (model.p1_pot + model.p2_pot)
                     ]
                 ]
                 Html.div [
@@ -107,9 +118,10 @@ module View =
                             prop.className "bottom-left"
                             prop.children [
                                 Html.div [
-                                    prop.className "pot-size"
+                                    prop.className "id-pot"
                                     prop.children [
-                                        Html.text model.p1_pot
+                                        pot model.p1_pot
+                                        id model.p1_id
                                     ]
                                 ]
                             ]
@@ -137,7 +149,22 @@ module View =
         Html.div [
             prop.className "ui"
             prop.children [
-                game_ui dispatch (model.leduc_model, model.allowed_actions)
+                Html.div [
+                    prop.className "menu-game-ui"
+                    prop.children [
+                        Html.div [
+                            prop.className "menu-ui border"
+                            prop.children [
+                                Html.button [
+                                    prop.className "menu-button"
+                                    prop.onClick (fun _ -> dispatch StartGame)
+                                    prop.text "Start Game"
+                                ]
+                            ]
+                        ]
+                        game_ui dispatch (model.leduc_model, model.allowed_actions)
+                    ]
+                ]
                 Html.div [
                     prop.className "message-ui border"
                     prop.children (model.message_list |> List.map Html.p)

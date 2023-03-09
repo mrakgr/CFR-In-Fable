@@ -2,9 +2,9 @@ module Server
 
 open Elmish
 open Saturn
-open Shared
 open Elmish.Bridge
-open Leduc.Types
+open Shared.Leduc.Types
+open Shared.Messages
 
 type ServerModel = {
     action_cont : (Action -> unit) option
@@ -26,7 +26,7 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
         model, Cmd.ofEffect (fun dispatch -> Leduc.Implementation.game_vs_self (FromLeducGame >> dispatch))
 
 let server =
-    Bridge.mkServer endpoint init update
+    Bridge.mkServer Shared.Constants.endpoint init update
     |> Bridge.run Giraffe.server
 
 let webApp = server

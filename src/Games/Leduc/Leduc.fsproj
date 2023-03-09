@@ -1,18 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <RootNamespace>Leduc</RootNamespace>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <Compile Include="Types.fs" />
-        <Compile Include="Game.fs" />
-        <Compile Include="Implementation.fs" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Utils\Utils.fsproj" />
-    </ItemGroup>
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>Leduc</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Game.fs" />
+    <Compile Include="Implementation.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Shared.fsproj" />
+    <ProjectReference Include="..\Utils\Utils.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>
