@@ -5,6 +5,7 @@
     <RootNamespace>Leduc</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="cps.fsx" />
     <Compile Include="Game.fs" />
     <Compile Include="Implementation.fs" />
   </ItemGroup>
