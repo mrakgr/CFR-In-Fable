@@ -10,8 +10,8 @@ type Mask = uint64
 type ILeducGame<'r> =
     abstract member chance_init : player_id: int * mask: Mask * cont: (Card * Mask -> 'r) -> 'r
     abstract member chance_community_card : mask: Mask * cont: (Card -> 'r) -> 'r
-    abstract member action_round_one : p1: Player * p2: Player * raises_left: int * cont: (Action -> 'r) -> 'r
-    abstract member action_round_two : p1: Player * p2: Player * raises_left: int * community_card: Card * cont: (Action -> 'r) -> 'r
+    abstract member action_round_one : is_call_a_check: bool * p1: Player * p2: Player * raises_left: int * cont: (Action -> 'r) -> 'r
+    abstract member action_round_two : is_call_a_check: bool * p1: Player * p2: Player * raises_left: int * community_card: Card * cont: (Action -> 'r) -> 'r
     abstract member terminal_fold : p1: Player * id: int * pot: int -> 'r
     abstract member terminal_call : p1: Player * p2: Player * community_card: Card * id: int * pot: int -> 'r
 

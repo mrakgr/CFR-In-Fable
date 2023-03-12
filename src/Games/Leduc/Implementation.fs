@@ -7,7 +7,7 @@ let sample_card mask = Sampler.sample deck mask
 
 type HumanLeducPlayer(dispatch : MsgLeduc -> unit) =
     let add_to_msgs msg msgs = Map.map (fun _ msgs -> msg :: msgs) msgs
-    let action (p1, p2, raises_left, community_card, cont) = fun (_, msgs) ->
+    let action (is_call_a_check, p1, p2, raises_left, community_card, cont) = fun (_, msgs) ->
         let model : LeducModel = { p1_id = names[p1.id]
                                    p1_card = Some p1.card
                                    p1_pot = p1.pot
@@ -20,7 +20,7 @@ type HumanLeducPlayer(dispatch : MsgLeduc -> unit) =
             let msg =
                 match a with
                 | Fold -> $"Player %s{names[p1.id]} folds."
-                | Call when p1.pot = p2.pot -> $"Player %s{names[p1.id]} checks."
+                | Call when is_call_a_check -> $"Player %s{names[p1.id]} checks."
                 | Call -> $"Player %s{names[p1.id]} calls."
                 | Raise -> $"Player %s{names[p1.id]} raises."
             cont a (model,add_to_msgs msg msgs)
@@ -46,8 +46,8 @@ type HumanLeducPlayer(dispatch : MsgLeduc -> unit) =
             let card,_ = sample_card mask
             let msg = $"The community card is a %A{card}"
             cont card (model,add_to_msgs msg msgs)
-        member this.action_round_one(p1, p2, raises_left, cont) = action (p1, p2, raises_left, None, cont)
-        member this.action_round_two(p1, p2, raises_left, community_card, cont) = action (p1, p2, raises_left, Some community_card, cont)
+        member this.action_round_one(is_call_a_check, p1, p2, raises_left, cont) = action (is_call_a_check, p1, p2, raises_left, None, cont)
+        member this.action_round_two(is_call_a_check, p1, p2, raises_left, community_card, cont) = action (is_call_a_check, p1, p2, raises_left, Some community_card, cont)
         member this.terminal_call(p1, p2, community_card, id, pot) = fun (model, msgs) ->
             let msgs =
                 msgs

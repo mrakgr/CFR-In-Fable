@@ -69,7 +69,7 @@ let ar = [|1;2;3;4;5|]
 
 let result =
     [|
-        for i=0 to 999 do
+        for _=0 to 999 do
             yield [|
                 let mutable mask = 0UL
                 for _ in ar do
