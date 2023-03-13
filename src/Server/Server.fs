@@ -22,8 +22,8 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
     | FromClient (SelectedAction action) ->
         Option.iter (fun f -> f action) model.action_cont
         {model with action_cont=None}, []
-    | FromClient StartGame ->
-        model, Cmd.ofEffect (fun dispatch -> Leduc.Implementation.game_vs_self (FromLeducGame >> dispatch))
+    | FromClient (StartGame(p0,p1)) ->
+        model, Cmd.ofEffect (fun dispatch -> Leduc.Implementation.game (FromLeducGame >> dispatch) (p0,p1))
 
 let server =
     Bridge.mkServer Shared.Constants.endpoint init update

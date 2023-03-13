@@ -1,6 +1,14 @@
 ﻿module Leduc.Game
 open Shared.Leduc.Types
 
+type ILeducGame<'r> =
+    abstract member chance_init : player_id: int * cont: (Card -> 'r) -> 'r
+    abstract member chance_community_card : cont: (Card -> 'r) -> 'r
+    abstract member action_round_one : is_call_a_check: bool * p1: Player * p2: Player * raises_left: int * cont: (Action -> 'r) -> 'r
+    abstract member action_round_two : is_call_a_check: bool * p1: Player * p2: Player * raises_left: int * community_card: Card * cont: (Action -> 'r) -> 'r
+    abstract member terminal_fold : p1: Player * id: int * pot: int -> 'r
+    abstract member terminal_call : p1: Player * p2: Player * community_card: Card * id: int * pot: int -> 'r
+
 let compare_hands (community_card : Card) (p1 : Player, p2 : Player) =
     let tag = function King -> 2 | Queen -> 1 | Jack -> 0
     let community_card = tag community_card
@@ -17,8 +25,8 @@ let compare_hands (community_card : Card) (p1 : Player, p2 : Player) =
 let raiseBy amount (p: Player) = p.pot + amount
 
 let game (ret : ILeducGame<'r>) : 'r =
-    ret.chance_init(0, 0UL, fun (c1,mask) ->
-    ret.chance_init(1, mask, fun (c2,mask) ->
+    ret.chance_init(0, fun c1 ->
+    ret.chance_init(1, fun c2 ->
 
     let rec round_two is_call_a_check raises_left (p1,p2) community_card =
         ret.action_round_two(is_call_a_check, p1, p2, raises_left, community_card, function
@@ -42,7 +50,7 @@ let game (ret : ILeducGame<'r>) : 'r =
         | Call when is_call_a_check -> round_one false raises_left (p2,p1)
         | Call ->
             let p1 = {p1 with pot=p2.pot}
-            ret.chance_community_card(mask, round_two true 2 (if p1.id = 0 then p1,p2 else p2,p1))
+            ret.chance_community_card(round_two true 2 (if p1.id = 0 then p1,p2 else p2,p1))
         | Raise -> round_one false (raises_left-1) (p2, {p1 with pot=raiseBy 2 p2})
         )
 

@@ -1,34 +1,26 @@
 ﻿module Shared.Leduc.Types
 
-open Shared
-
 type Action = Fold | Call | Raise
 type Card = King | Queen | Jack
 type Player = { card : Card; id : int; pot : int }
 type Mask = uint64
 
-type ILeducGame<'r> =
-    abstract member chance_init : player_id: int * mask: Mask * cont: (Card * Mask -> 'r) -> 'r
-    abstract member chance_community_card : mask: Mask * cont: (Card -> 'r) -> 'r
-    abstract member action_round_one : is_call_a_check: bool * p1: Player * p2: Player * raises_left: int * cont: (Action -> 'r) -> 'r
-    abstract member action_round_two : is_call_a_check: bool * p1: Player * p2: Player * raises_left: int * community_card: Card * cont: (Action -> 'r) -> 'r
-    abstract member terminal_fold : p1: Player * id: int * pot: int -> 'r
-    abstract member terminal_call : p1: Player * p2: Player * community_card: Card * id: int * pot: int -> 'r
+type PlayerType = Human | Random
 
 type LeducModel = {
-    p1_id: string
+    p1_id: int
     p1_card: Card option
     p1_pot: int
-    p2_id: string
+    p2_id: int
     p2_card: Card option
     p2_pot: int
     community_card : Card option
 } with
     static member Default = {
-        p1_id = Constants.names[0]
+        p1_id = 0
         p1_card = None
         p1_pot = 0
-        p2_id = Constants.names[1]
+        p2_id = 1
         p2_card = None
         p2_pot = 0
         community_card = None

@@ -14,15 +14,17 @@ type ClientModel = {
     leduc_model : LeducModel
     message_list : string list
     allowed_actions : AllowedActions
+    p0 : PlayerType
+    p1 : PlayerType
 }
 
 let init () : ClientModel * Cmd<_> =
-    { leduc_model = LeducModel.Default; message_list = []; allowed_actions = AllowedActions.Default}, []
+    { leduc_model = LeducModel.Default; message_list = []; allowed_actions = AllowedActions.Default; p0 = Human; p1 = Random}, []
 
 let update msg (model : ClientModel) : ClientModel * Cmd<_>  =
     match msg with
     | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
-    | StartGame -> model, Cmd.bridgeSend(FromClient MsgServerFromClient.StartGame)
+    | StartGame -> model, Cmd.bridgeSend(FromClient (MsgServerFromClient.StartGame(model.p0, model.p1)))
     | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
         {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
 
@@ -68,10 +70,10 @@ module View =
                 prop.text i
             ]
 
-        let id (s : string) =
+        let id (s : int) =
             Html.div [
                 prop.className "id"
-                prop.text s
+                prop.text (Shared.Constants.names[s])
             ]
 
         Html.div [
@@ -80,10 +82,10 @@ module View =
                 Html.div [
                     prop.className "game-ui-background"
                     prop.children [
-                        let el (id : string) =
+                        let el (id : int) =
                             Html.p [
-                                prop.className (if id = Shared.Constants.names[0] then "bg-red" else "bg-blue")
-                                prop.text id
+                                prop.className (if id = 0 then "bg-red" else "bg-blue")
+                                prop.text (Shared.Constants.names[id])
                             ]
                         el model.p2_id
                         el model.p1_id

@@ -7,7 +7,7 @@ type MsgServerToClient =
 
 type MsgServerFromClient =
     | SelectedAction of Action
-    | StartGame
+    | StartGame of p0: PlayerType * p1: PlayerType
 
 type MsgServer =
     | FromLeducGame of MsgLeduc
