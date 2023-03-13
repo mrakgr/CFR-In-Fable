@@ -78,6 +78,18 @@ module View =
             prop.className "game-ui border"
             prop.children [
                 Html.div [
+                    prop.className "game-ui-background"
+                    prop.children [
+                        let el (id : string) =
+                            Html.p [
+                                prop.className (if id = Shared.Constants.names[0] then "bg-red" else "bg-blue")
+                                prop.text id
+                            ]
+                        el model.p2_id
+                        el model.p1_id
+                    ]
+                ]
+                Html.div [
                     prop.className "top"
                     prop.children [
                         Html.div [
@@ -144,6 +156,7 @@ module View =
                 ]
             ]
         ]
+
 
     let view (model: ClientModel) dispatch : ReactElement =
         Html.div [
