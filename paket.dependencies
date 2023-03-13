@@ -1,5 +1,4 @@
 source https://api.nuget.org/v3/index.json
-framework: net6.0
 storage: none
 
 nuget Elmish.Bridge.Client
@@ -7,7 +6,7 @@ nuget Elmish.Bridge.Giraffe
 nuget Fsharp.Core
 nuget Fable.Remoting.Giraffe
 nuget Saturn
-nuget Microsoft.AspNetCore.Authentication.JwtBearer ~> 6
+nuget Microsoft.AspNetCore.Authentication.JwtBearer
 nuget Expecto
 
 nuget Fable.Core
@@ -19,7 +18,7 @@ nuget Fable.Mocha
 nuget Fable.React
 nuget Fable.Remoting.Client
 nuget Feliz
-nuget Feliz.Bulma 3.0.0-pre-002
+nuget Feliz.Bulma
 nuget Fulma
 
 nuget Fake.Core.Target

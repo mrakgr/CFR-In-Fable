@@ -30,7 +30,7 @@ type LeducModel = {
 type AllowedActions = { is_fold : bool; is_call : bool; is_raise : bool } with
     static member IsAllowed q = function Fold -> q.is_fold | Call -> q.is_call | Raise -> q.is_raise
     static member Mask q =
-        let f b i m = if b then m ||| (1UL <<< i) else m
+        let f b i m = if b then m else m ||| (1UL <<< i)
         0UL |> f q.is_fold 0 |> f q.is_call 1 |> f q.is_raise 2
     static member Array q = [|
         if q.is_fold then Fold

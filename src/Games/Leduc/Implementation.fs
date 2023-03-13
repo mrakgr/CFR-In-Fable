@@ -28,14 +28,7 @@ type LeducTerminalDispatch(dispatch) =
 
 type LeducActionRandom() =
     interface ILeducAction with
-        member this.action(_, _, allowed_actions, cont) =
-            printf $"In action random."
-            // let t = sample_action (AllowedActions.Mask allowed_actions) |> fst
-            let t = AllowedActions.Mask allowed_actions
-            let t = sample_action t |> fst
-            ()
-            // printfn $"In action random. Action is %A{t}"
-            // cont t
+        member this.action(_, _, allowed_actions, cont) = sample_action (AllowedActions.Mask allowed_actions) |> fst |> cont
 
 type LeducActionHuman(dispatch) =
     interface ILeducAction with
@@ -50,12 +43,8 @@ type Leduc2P(chance : ILeducChance,terminal : ILeducTerminal,p0 : ILeducAction,p
     interface ILeducPlayer with
         member this.chance(id, mask, cont) = chance.chance(id,mask,cont)
         member this.action(model, msgs, allowed_actions, cont) =
-            printfn $"In 2p action. Model id: %i{model.p1_id}"
             if model.p1_id = 0 then p0.action(model, msgs, allowed_actions, cont)
-            else
-                printfn $"Calling %A{p1}"
-                p1.action(model, msgs, allowed_actions, cont)
-                printfn "Done."
+            else p1.action(model, msgs, allowed_actions, cont)
         member this.terminal(model, msgs) = terminal.terminal(model,msgs)
 
 type LeducGame(p : ILeducPlayer) =
