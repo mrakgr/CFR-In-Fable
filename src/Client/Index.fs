@@ -8,6 +8,7 @@ open Shared.Leduc.Types
 type MsgClient =
     | ClickedOn of Action
     | StartGame
+    | PlayerChange of id: int * pl: PlayerType
     | FromServer of MsgServerToClient
 
 type ClientModel = {
@@ -25,6 +26,13 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_>  =
     match msg with
     | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
     | StartGame -> model, Cmd.bridgeSend(FromClient (MsgServerFromClient.StartGame(model.p0, model.p1)))
+    | PlayerChange(id, pl) ->
+        let model =
+            match id with
+            | 0 -> {model with p0 = pl}
+            | 1 -> {model with p1 = pl}
+            | _ -> model
+        model, []
     | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
         {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
 
@@ -159,8 +167,18 @@ module View =
             ]
         ]
 
+    let menu_ui_select_children =
+        prop.children [
+            let opt (x : string) =
+                Html.option [
+                    prop.className "player-select-option"
+                    prop.value x
+                    prop.text x
+                ]
+            yield! Map.foldBack (fun k _ s -> opt k :: s) player_types []
+        ]
 
-    let view (model: ClientModel) dispatch : ReactElement =
+    let view (model: ClientModel) (dispatch : MsgClient -> unit) : ReactElement =
         Html.div [
             prop.className "ui"
             prop.children [
@@ -170,11 +188,20 @@ module View =
                         Html.div [
                             prop.className "menu-ui border"
                             prop.children [
+                                let select id (def : PlayerType) =
+                                    Html.select [
+                                        prop.className "player-select"
+                                        menu_ui_select_children
+                                        prop.value (def.ToString())
+                                        prop.onChange (fun x ->  dispatch (PlayerChange(id,player_types[x])))
+                                    ]
+                                select 1 model.p1
                                 Html.button [
                                     prop.className "menu-button"
                                     prop.onClick (fun _ -> dispatch StartGame)
                                     prop.text "Start Game"
                                 ]
+                                select 0 model.p0
                             ]
                         ]
                         game_ui dispatch (model.leduc_model, model.allowed_actions)

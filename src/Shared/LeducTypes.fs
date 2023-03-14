@@ -6,6 +6,9 @@ type Player = { card : Card; id : int; pot : int }
 type Mask = uint64
 
 type PlayerType = Human | Random
+let player_types =
+    Array.fold (fun s x -> Map.add (x.ToString()) x s) Map.empty
+        [|Human; Random|]
 
 type LeducModel = {
     p1_id: int

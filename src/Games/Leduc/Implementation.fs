@@ -14,10 +14,21 @@ type ILeducAction =
     abstract member action : model: LeducModel * msgs: string list * allowed_actions: AllowedActions * cont: (Action -> unit) -> unit
 type ILeducTerminal =
     abstract member terminal : model: LeducModel * msgs: string list -> unit
+type ILeducPlayer =
+    inherit ILeducChance
+    inherit ILeducAction
+    inherit ILeducTerminal
 
 type LeducChanceSample() =
     interface ILeducChance with
         member this.chance(_, mask, cont) = sample_card mask |> cont
+
+type LeducActionRandom() =
+    interface ILeducAction with
+        member this.action(_, _, allowed_actions, cont) = sample_action (AllowedActions.Mask allowed_actions) |> fst |> cont
+type LeducActionHuman(dispatch) =
+    interface ILeducAction with
+        member this.action(model, msgs, allowed_actions, cont) = Action(model,msgs,allowed_actions,cont) |> dispatch
 
 type LeducTerminalIgnore() =
     interface ILeducTerminal with
@@ -25,19 +36,6 @@ type LeducTerminalIgnore() =
 type LeducTerminalDispatch(dispatch) =
     interface ILeducTerminal with
         member this.terminal(model, msgs) = Terminal(model,msgs) |> dispatch
-
-type LeducActionRandom() =
-    interface ILeducAction with
-        member this.action(_, _, allowed_actions, cont) = sample_action (AllowedActions.Mask allowed_actions) |> fst |> cont
-
-type LeducActionHuman(dispatch) =
-    interface ILeducAction with
-        member this.action(model, msgs, allowed_actions, cont) = Action(model,msgs,allowed_actions,cont) |> dispatch
-
-type ILeducPlayer =
-    abstract member chance : id: int option * mask: Mask * cont: (Card * Mask -> unit) -> unit
-    abstract member action : model: LeducModel * msgs: string list * allowed_actions: AllowedActions * cont: (Action -> unit) -> unit
-    abstract member terminal : model: LeducModel * msgs: string list -> unit
 
 type Leduc2P(chance : ILeducChance,terminal : ILeducTerminal,p0 : ILeducAction,p1 : ILeducAction) =
     interface ILeducPlayer with
