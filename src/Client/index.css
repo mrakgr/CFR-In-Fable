@@ -246,3 +246,34 @@ body {
     border: 0.2rem solid;
     border-radius: 10%;
 }
+
+.tabs-ui {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    background-color: hsl(0, 0%, 95%);
+}
+
+.tab {
+    margin: 0.2rem;
+    border: 0.4rem solid;
+    border-radius: 0.3rem;
+    min-width: 5em;
+    font-size: 2em;
+}
+
+.active-tab {
+    background-color: hsl(0, 0%, 20%);
+    color: hsl(0, 0%, 80%);
+}
+
+.inactive-tab {
+    background-color: hsl(0, 0%, 80%);
+    color: hsl(0, 0%, 20%);
+}
+
+.train-ui {
+    flex: 1;
+    width: 100%;
+}

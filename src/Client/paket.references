@@ -1,3 +1,4 @@
+Fsharp.Core
 Fable.Core
 Fable.Elmish
 Fable.Elmish.React
@@ -5,7 +6,7 @@ Fable.Elmish.Debugger
 Fable.Elmish.HMR
 Fable.React
 Fable.Remoting.Client
-Feliz
-Fsharp.Core
 Fulma
 Elmish.Bridge.Client
+Feliz
+Feliz.Recharts

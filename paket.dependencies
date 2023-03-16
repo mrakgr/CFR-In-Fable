@@ -3,6 +3,7 @@ storage: none
 
 nuget Elmish.Bridge.Client
 nuget Elmish.Bridge.Giraffe
+nuget Feliz.Recharts
 nuget Fsharp.Core
 nuget Fable.Remoting.Giraffe
 nuget Saturn

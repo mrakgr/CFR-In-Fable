@@ -5,11 +5,16 @@ open Elmish.Bridge
 open Shared.Messages
 open Shared.Leduc.Types
 
+type Tabs =
+    | Game
+    | Train
+
 type MsgClient =
-    | ClickedOn of Action
+    | ClickedOn of act: Action
     | StartGame
     | PlayerChange of id: int * pl: PlayerType
-    | FromServer of MsgServerToClient
+    | TabClicked of tab: Tabs
+    | FromServer of msg: MsgServerToClient
 
 type ClientModel = {
     leduc_model : LeducModel
@@ -17,10 +22,22 @@ type ClientModel = {
     allowed_actions : AllowedActions
     p0 : PlayerType
     p1 : PlayerType
+    active_tab : Tabs
+    training_data : float list
 }
 
 let init () : ClientModel * Cmd<_> =
-    { leduc_model = LeducModel.Default; message_list = []; allowed_actions = AllowedActions.Default; p0 = Human; p1 = Random}, []
+    {
+        leduc_model = LeducModel.Default
+        message_list = []
+        allowed_actions = AllowedActions.Default
+        p0 = Human; p1 = Random
+        active_tab = Game
+        training_data = [
+            let rng = System.Random()
+            for _ = 1 to 100 do rng.NextDouble()
+        ]
+    }, []
 
 let update msg (model : ClientModel) : ClientModel * Cmd<_>  =
     match msg with
@@ -33,13 +50,15 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_>  =
             | 1 -> {model with p1 = pl}
             | _ -> model
         model, []
+    | TabClicked tab ->
+        {model with active_tab=tab}, []
     | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
         {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
 
 module View =
     open Feliz
 
-    let game_ui dispatch (model : LeducModel, allowed_actions : AllowedActions) =
+    let game_ui (model : LeducModel, allowed_actions : AllowedActions) dispatch =
         let card (x : Card option) =
             let card =
                 match x with
@@ -168,50 +187,113 @@ module View =
         ]
 
     let menu_ui_select_children =
-        prop.children [
-            let opt (x : string) =
-                Html.option [
-                    prop.className "player-select-option"
-                    prop.value x
-                    prop.text x
-                ]
-            yield! Map.foldBack (fun k _ s -> opt k :: s) player_types []
-        ]
+        let opt (x : string) =
+            Html.option [
+                prop.className "player-select-option"
+                prop.value x
+                prop.text x
+            ]
+        prop.children (Map.foldBack (fun k _ s -> opt k :: s) player_types [])
 
-    let view (model: ClientModel) (dispatch : MsgClient -> unit) : ReactElement =
+    let menu_ui (model: ClientModel) dispatch =
         Html.div [
-            prop.className "ui"
+            prop.className "menu-ui border"
             prop.children [
-                Html.div [
-                    prop.className "menu-game-ui"
-                    prop.children [
-                        Html.div [
-                            prop.className "menu-ui border"
-                            prop.children [
-                                let select id (def : PlayerType) =
-                                    Html.select [
-                                        prop.className "player-select"
-                                        menu_ui_select_children
-                                        prop.value (def.ToString())
-                                        prop.onChange (fun x ->  dispatch (PlayerChange(id,player_types[x])))
-                                    ]
-                                select 1 model.p1
-                                Html.button [
-                                    prop.className "menu-button"
-                                    prop.onClick (fun _ -> dispatch StartGame)
-                                    prop.text "Start Game"
-                                ]
-                                select 0 model.p0
-                            ]
-                        ]
-                        game_ui dispatch (model.leduc_model, model.allowed_actions)
+                let select id (def : PlayerType) =
+                    Html.select [
+                        prop.className "player-select"
+                        menu_ui_select_children
+                        prop.value (def.ToString())
+                        prop.onChange (fun x ->  dispatch (PlayerChange(id,player_types[x])))
                     ]
+                select 1 model.p1
+                Html.button [
+                    prop.className "menu-button"
+                    prop.onClick (fun _ -> dispatch StartGame)
+                    prop.text "Start Game"
                 ]
-                Html.div [
-                    prop.className "message-ui border"
-                    prop.children (model.message_list |> List.map Html.p)
-                ]
+                select 0 model.p0
             ]
         ]
 
-let view = View.view
+    let menu_game_ui (model: ClientModel) (dispatch : MsgClient -> unit) : ReactElement =
+        Html.div [
+            prop.className "menu-game-ui"
+            prop.children [
+                menu_ui model dispatch
+                game_ui (model.leduc_model, model.allowed_actions) dispatch
+            ]
+        ]
+
+    let message_ui (model: ClientModel) : ReactElement =
+        Html.div [
+            prop.className "message-ui border"
+            prop.children (model.message_list |> List.map Html.p)
+        ]
+
+    let tabs_ui active_tab dispatch =
+        let tab x =
+            Html.button [
+                prop.classes ["tab"; if active_tab = x then "active-tab" else "inactive-tab"]
+                prop.text (x.ToString())
+                prop.onClick (fun _ -> dispatch (TabClicked x))
+            ]
+        Html.div [
+            prop.className "tabs-ui border"
+            prop.children [
+                tab Game
+                tab Train
+            ]
+        ]
+
+    open Feliz.Recharts
+
+    [<ReactComponent>]
+    let SimpleLineChart(data : float list) =
+        Recharts.responsiveContainer [
+            responsiveContainer.width (length.perc 100)
+            responsiveContainer.height (length.perc 100)
+            Recharts.lineChart [
+                lineChart.data data
+                lineChart.margin(top=5, right=30)
+                lineChart.children [
+                    Recharts.cartesianGrid [ cartesianGrid.strokeDasharray(3, 3) ]
+                    Recharts.xAxis [
+                        Interop.mkXAxisAttr "label" {|value="Iteration"; position="insideBottomRight"; offset= -10|}
+                    ]
+                    Recharts.yAxis [ Interop.mkYAxisAttr "label" {|value="Reward"; angle= -90; position="insideLeft"; offset= 20 |} ]
+                    Recharts.tooltip [ ]
+                    Recharts.legend [ ]
+                    Recharts.line [
+                        line.monotone
+                        line.dataKey (id : float -> _)
+                        line.stroke "#101010"
+                        line.strokeWidth 2
+                    ]
+                ]
+            ] |> responsiveContainer.chart
+        ]
+
+    let train_ui (model: ClientModel) (dispatch : MsgClient -> unit) : ReactElement =
+        Html.div [
+            prop.className "train-ui border"
+            prop.children [
+                SimpleLineChart(model.training_data)
+            ]
+        ]
+
+    let main (model: ClientModel) (dispatch : MsgClient -> unit) : ReactElement =
+        Html.div [
+            prop.className "ui"
+            prop.children [
+                tabs_ui model.active_tab dispatch
+                match model.active_tab with
+                | Game ->
+                    menu_game_ui model dispatch
+                    message_ui model
+                | Train ->
+                    train_ui model dispatch
+            ]
+        ]
+
+let view = View.main
