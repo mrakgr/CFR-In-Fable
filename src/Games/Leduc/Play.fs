@@ -1,4 +1,4 @@
-﻿module Leduc.Implementation
+﻿module Leduc.Play
 open Shared.Constants
 open Shared.Leduc.Types
 open Leduc.Game
@@ -45,7 +45,7 @@ type Leduc2P(chance : ILeducChance,terminal : ILeducTerminal,p0 : ILeducAction,p
             else p1.action(model, msgs, allowed_actions, cont)
         member this.terminal(model, msgs) = terminal.terminal(model,msgs)
 
-type LeducGame(p : ILeducPlayer) =
+type LeducGamePlay(p : ILeducPlayer) =
     let add_to_msgs msg msgs = Map.map (fun _ msgs -> msg :: msgs) msgs
     let action (is_call_a_check, p1, p2, raises_left, community_card, cont) = fun (_, msgs, mask) ->
         let model : LeducModel = { p1_id = p1.id
@@ -101,4 +101,5 @@ type LeducGame(p : ILeducPlayer) =
 let game dispatch (p0,p1) =
     let msgs = Map.empty |> Map.add 0 [] |> Map.add 1 []
     let f = function Human -> LeducActionHuman dispatch :> ILeducAction | Random -> LeducActionRandom()
-    game(LeducGame (Leduc2P(LeducChanceSample(),LeducTerminalDispatch dispatch,f p0,f p1))) (LeducModel.Default, msgs, 0UL)
+    game(LeducGamePlay (Leduc2P(LeducChanceSample(),LeducTerminalDispatch dispatch,f p0,f p1))) (LeducModel.Default, msgs, 0UL)
+

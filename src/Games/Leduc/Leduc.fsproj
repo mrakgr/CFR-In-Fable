@@ -7,9 +7,11 @@
   <ItemGroup>
     <None Include="cps.fsx" />
     <Compile Include="Game.fs" />
-    <Compile Include="Implementation.fs" />
+    <Compile Include="Play.fs" />
+    <Compile Include="Learn.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CFR\CFR.fsproj" />
     <ProjectReference Include="..\..\Shared\Shared.fsproj" />
     <ProjectReference Include="..\Utils\Utils.fsproj" />
   </ItemGroup>
