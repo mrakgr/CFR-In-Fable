@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="test.fsx" />
-    <Compile Include="Sampler.fs" />
+    <Compile Include="MaskedArray.fs" />
   </ItemGroup>
   <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>

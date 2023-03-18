@@ -1,12 +1,8 @@
 ﻿module Leduc.Play
 open Shared.Constants
 open Shared.Leduc.Types
+open Leduc.Types
 open Leduc.Game
-
-let deck = [|King; King; Queen; Queen; Jack; Jack|]
-let actions = [|Fold; Call; Raise|]
-let sample_card mask = Sampler.sample deck mask
-let sample_action mask = Sampler.sample actions mask
 
 type ILeducChance =
     abstract member chance : id: int option * mask: Mask * cont: (Card * Mask -> unit) -> unit
@@ -50,10 +46,10 @@ type LeducGamePlay(p : ILeducPlayer) =
     let action (is_call_a_check, p1, p2, raises_left, community_card, cont) = fun (_, msgs, mask) ->
         let model : LeducModel = { p1_id = p1.id
                                    p1_card = Some p1.card
-                                   p1_pot = p1.pot
+                                   p0_pot = p1.pot
                                    p2_id = p2.id
                                    p2_card = Some p2.card
-                                   p2_pot = p2.pot
+                                   p1_pot = p2.pot
                                    community_card = community_card }
         let msg = $"It is player %s{names[p1.id]}'s turn to act..."
         p.action(model,msg :: Map.find p1.id msgs,AllowedActions.FromModel(model,raises_left),fun a ->
@@ -90,11 +86,11 @@ type LeducGamePlay(p : ILeducPlayer) =
                 )
         member this.action_round_one(is_call_a_check, p1, p2, raises_left, cont) = action (is_call_a_check, p1, p2, raises_left, None, cont)
         member this.action_round_two(is_call_a_check, p1, p2, raises_left, community_card, cont) = action (is_call_a_check, p1, p2, raises_left, Some community_card, cont)
-        member this.terminal_call(p1, p2, community_card, id, pot) = fun (model, msgs, _) ->
+        member this.terminal_call(p0, p1, community_card, id, pot) = fun (model, msgs, _) ->
             msgs
-            |> add_to_msgs $"Player %s{names[p1.id]} shows {p1.card}-{community_card}."
-            |> add_to_msgs $"Player %s{names[(p1.id + 1) % 2]} shows {p2.card}-{community_card}."
-            |> fun msgs -> terminal (id,pot) ({model with p1_pot=p1.pot; p2_pot=p2.pot},msgs)
+            |> add_to_msgs $"Player %s{names[p0.id]} shows {p0.card}-{community_card}."
+            |> add_to_msgs $"Player %s{names[(p0.id + 1) % 2]} shows {p1.card}-{community_card}."
+            |> fun msgs -> terminal (id,pot) ({model with p0_pot=p0.pot; p1_pot=p1.pot},msgs)
         member this.terminal_fold(_, id, pot) = fun (model, msgs, _) ->
             terminal (id,pot) (model,msgs)
 

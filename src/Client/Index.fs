@@ -128,7 +128,7 @@ module View =
                                     prop.className "id-pot"
                                     prop.children [
                                         id model.p2_id
-                                        pot model.p2_pot
+                                        pot model.p1_pot
                                     ]
                                 ]
                             ]
@@ -149,7 +149,7 @@ module View =
                     prop.children [
                         card model.community_card
                         padder_middle 1
-                        pot (model.p1_pot + model.p2_pot)
+                        pot (model.p0_pot + model.p1_pot)
                     ]
                 ]
                 Html.div [
@@ -161,7 +161,7 @@ module View =
                                 Html.div [
                                     prop.className "id-pot"
                                     prop.children [
-                                        pot model.p1_pot
+                                        pot model.p0_pot
                                         id model.p1_id
                                     ]
                                 ]

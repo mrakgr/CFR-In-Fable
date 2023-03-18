@@ -13,7 +13,7 @@ type ServerModel = {
 let init _ () : ServerModel * Cmd<_> = {action_cont=None}, []
 let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
     match msg with
-    | FromLeducGame (Action(leduc_model, msgs, allowed_actions, cont)) ->
+    | FromLeducGame (MsgAction(leduc_model, msgs, allowed_actions, cont)) ->
         dispact_client (GameState({leduc_model with p2_card=None},msgs,allowed_actions))
         {model with action_cont=Some cont}, []
     | FromLeducGame (Terminal(leduc_model, msgs)) ->

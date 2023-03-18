@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="cps.fsx" />
+    <Compile Include="Types.fs" />
     <Compile Include="Game.fs" />
     <Compile Include="Play.fs" />
     <Compile Include="Learn.fs" />
