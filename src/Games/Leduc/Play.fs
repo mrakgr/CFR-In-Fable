@@ -37,28 +37,28 @@ type Leduc2P(chance : ILeducChance,terminal : ILeducTerminal,p0 : ILeducAction,p
     interface ILeducPlayer with
         member this.chance(id, mask, cont) = chance.chance(id,mask,cont)
         member this.action(model, msgs, allowed_actions, cont) =
-            if model.p1_id = 0 then p0.action(model, msgs, allowed_actions, cont)
+            if model.p0_id = 0 then p0.action(model, msgs, allowed_actions, cont)
             else p1.action(model, msgs, allowed_actions, cont)
         member this.terminal(model, msgs) = terminal.terminal(model,msgs)
 
 type LeducGamePlay(p : ILeducPlayer) =
     let add_to_msgs msg msgs = Map.map (fun _ msgs -> msg :: msgs) msgs
-    let action (is_call_a_check, p1, p2, raises_left, community_card, cont) = fun (_, msgs, mask) ->
-        let model : LeducModel = { p1_id = p1.id
+    let action (is_call_a_check, p0, p1, raises_left, community_card, cont) = fun (_, msgs, mask) ->
+        let model : LeducModel = { p0_id = p0.id
+                                   p0_card = Some p0.card
+                                   p0_pot = p0.pot
+                                   p1_id = p1.id
                                    p1_card = Some p1.card
-                                   p0_pot = p1.pot
-                                   p2_id = p2.id
-                                   p2_card = Some p2.card
-                                   p1_pot = p2.pot
+                                   p1_pot = p1.pot
                                    community_card = community_card }
-        let msg = $"It is player %s{names[p1.id]}'s turn to act..."
-        p.action(model,msg :: Map.find p1.id msgs,AllowedActions.FromModel(model,raises_left),fun a ->
+        let msg = $"It is player %s{names[p0.id]}'s turn to act..."
+        p.action(model,msg :: Map.find p0.id msgs,AllowedActions.FromModel(model,raises_left),fun a ->
             let msg =
                 match a with
-                | Fold -> $"Player %s{names[p1.id]} folds."
-                | Call when is_call_a_check -> $"Player %s{names[p1.id]} checks."
-                | Call -> $"Player %s{names[p1.id]} calls."
-                | Raise -> $"Player %s{names[p1.id]} raises."
+                | Fold -> $"Player %s{names[p0.id]} folds."
+                | Call when is_call_a_check -> $"Player %s{names[p0.id]} checks."
+                | Call -> $"Player %s{names[p0.id]} calls."
+                | Raise -> $"Player %s{names[p0.id]} raises."
             cont a (model,add_to_msgs msg msgs,mask)
             )
     let terminal(id, pot) = fun (model, msgs) ->
@@ -84,8 +84,8 @@ type LeducGamePlay(p : ILeducPlayer) =
                 let msg = $"The community card is a %A{card}"
                 cont card (model,add_to_msgs msg msgs,mask)
                 )
-        member this.action_round_one(is_call_a_check, p1, p2, raises_left, cont) = action (is_call_a_check, p1, p2, raises_left, None, cont)
-        member this.action_round_two(is_call_a_check, p1, p2, raises_left, community_card, cont) = action (is_call_a_check, p1, p2, raises_left, Some community_card, cont)
+        member this.action_round_one(is_call_a_check, p0, p1, raises_left, cont) = action (is_call_a_check, p0, p1, raises_left, None, cont)
+        member this.action_round_two(is_call_a_check, p0, p1, raises_left, community_card, cont) = action (is_call_a_check, p0, p1, raises_left, Some community_card, cont)
         member this.terminal_call(p0, p1, community_card, id, pot) = fun (model, msgs, _) ->
             msgs
             |> add_to_msgs $"Player %s{names[p0.id]} shows {p0.card}-{community_card}."

@@ -14,6 +14,7 @@ type MsgClient =
     | StartGame
     | PlayerChange of id: int * pl: PlayerType
     | TabClicked of tab: Tabs
+    | TrainingStartClicked
     | FromServer of msg: MsgServerToClient
 
 type ClientModel = {
@@ -23,7 +24,9 @@ type ClientModel = {
     p0 : PlayerType
     p1 : PlayerType
     active_tab : Tabs
-    training_data : float list
+    training_iterations_left : int
+    training_results : (float * float) list
+    training_model : Map<string list,string []>
 }
 
 let init () : ClientModel * Cmd<_> =
@@ -33,27 +36,36 @@ let init () : ClientModel * Cmd<_> =
         allowed_actions = AllowedActions.Default
         p0 = Human; p1 = Random
         active_tab = Game
-        training_data = [
-            let rng = System.Random()
-            for _ = 1 to 100 do rng.NextDouble()
-        ]
+        training_iterations_left = 0
+        training_results = []
+        training_model = Map.empty
     }, []
 
-let update msg (model : ClientModel) : ClientModel * Cmd<_>  =
-    match msg with
-    | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
-    | StartGame -> model, Cmd.bridgeSend(FromClient (MsgServerFromClient.StartGame(model.p0, model.p1)))
-    | PlayerChange(id, pl) ->
-        let model =
-            match id with
-            | 0 -> {model with p0 = pl}
-            | 1 -> {model with p1 = pl}
-            | _ -> model
+let update msg (model : ClientModel) : ClientModel * Cmd<_> =
+    try
+        match msg with
+        | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
+        | StartGame -> model, Cmd.bridgeSend(FromClient (MsgServerFromClient.StartGame(model.p0, model.p1)))
+        | PlayerChange(id, pl) ->
+            let model =
+                match id with
+                | 0 -> {model with p0 = pl}
+                | 1 -> {model with p1 = pl}
+                | _ -> model
+            model, []
+        | TabClicked tab ->
+            {model with active_tab=tab}, []
+        | TrainingStartClicked ->
+            {model with training_iterations_left=model.training_iterations_left+10}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Train 10))
+        | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
+            {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
+        | FromServer (TrainingResult x) ->
+            {model with training_results=x :: model.training_results; training_iterations_left=model.training_iterations_left-1}, []
+        | FromServer (TrainingModel x) ->
+            {model with training_model=x}, []
+    with e ->
+        printfn "%A" e
         model, []
-    | TabClicked tab ->
-        {model with active_tab=tab}, []
-    | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
-        {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
 
 module View =
     open Feliz
@@ -114,8 +126,8 @@ module View =
                                 prop.className (if id = 0 then "bg-red" else "bg-blue")
                                 prop.text (Shared.Constants.names[id])
                             ]
-                        el model.p2_id
                         el model.p1_id
+                        el model.p0_id
                     ]
                 ]
                 Html.div [
@@ -127,7 +139,7 @@ module View =
                                 Html.div [
                                     prop.className "id-pot"
                                     prop.children [
-                                        id model.p2_id
+                                        id model.p1_id
                                         pot model.p1_pot
                                     ]
                                 ]
@@ -136,7 +148,7 @@ module View =
                         Html.div [
                             prop.className "top-middle"
                             prop.children [
-                                card model.p2_card
+                                card model.p1_card
                             ]
                         ]
                         Html.div [
@@ -162,7 +174,7 @@ module View =
                                     prop.className "id-pot"
                                     prop.children [
                                         pot model.p0_pot
-                                        id model.p1_id
+                                        id model.p0_id
                                     ]
                                 ]
                             ]
@@ -170,7 +182,7 @@ module View =
                         Html.div [
                             prop.className "bottom-middle"
                             prop.children [
-                                card model.p1_card
+                                card model.p0_card
                             ]
                         ]
                         Html.div [
@@ -249,7 +261,7 @@ module View =
     open Feliz.Recharts
 
     [<ReactComponent>]
-    let SimpleLineChart(data : float list) =
+    let training_results_chart(data : (float * float) list) =
         Recharts.responsiveContainer [
             responsiveContainer.width (length.perc 100)
             responsiveContainer.height (length.perc 100)
@@ -266,9 +278,17 @@ module View =
                     Recharts.legend [ ]
                     Recharts.line [
                         line.monotone
-                        line.dataKey (id : float -> _)
-                        line.stroke "#101010"
+                        line.dataKey (fst : float * float -> _)
+                        line.stroke "#00ff00"
                         line.strokeWidth 2
+                        line.name "Player 0"
+                    ]
+                    Recharts.line [
+                        line.monotone
+                        line.dataKey (snd : float * float -> _)
+                        line.stroke "#0000ff"
+                        line.strokeWidth 2
+                        line.name "Player 1"
                     ]
                 ]
             ] |> responsiveContainer.chart
@@ -278,7 +298,33 @@ module View =
         Html.div [
             prop.className "train-ui border"
             prop.children [
-                SimpleLineChart(model.training_data)
+                Html.div [
+                    Html.button [
+                        prop.className "train-start-button"
+                        if 0 < model.training_iterations_left then
+                            prop.text $"Training In Progress: %i{model.training_iterations_left} left..."
+                        else
+                            prop.text "Click To Begin Training"
+                        prop.onClick (fun _ -> dispatch TrainingStartClicked)
+                    ]
+                ]
+                // Html.div [
+                //     prop.className "train-chart"
+                //     prop.children [
+                //         training_results_chart(model.training_results |> List.rev)
+                //     ]
+                // ]
+                Html.hr []
+                Html.div [
+                    prop.className "train-table"
+                    prop.children [
+                        Html.div "Sequence"
+                        Html.div "Probabilities"
+                        for (KeyValue(k,v)) in model.training_model do
+                            k |> String.concat ", " |> Html.text |> Html.div
+                            v |> Array.map string |> String.concat ", " |> Html.text |> Html.div
+                    ]
+                ]
             ]
         ]
 

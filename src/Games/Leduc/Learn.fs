@@ -32,7 +32,8 @@ type LeducGameLearn(chance : IChance, p0 : IAction<GameModel,Action>, p1 : IActi
 
     let action id allowed_actions cont (model,probs,mask) =
         (get id (p0, p1)).action(get id model,AllowedActions.FromDataToArray allowed_actions,swap id probs,fun (act,probs) ->
-            cont act (modify id (fun model -> Choice1Of2 act :: model) model, swap id probs, mask)
+            let f id = modify id (fun model -> Choice1Of2 act :: model)
+            cont act (model |> f 0 |> f 1, swap id probs, mask)
             |> reward_negate id
             )
         |> reward_negate id
@@ -52,12 +53,17 @@ type LeducGameLearn(chance : IChance, p0 : IAction<GameModel,Action>, p1 : IActi
         member this.action_round_two(_, p0, p1, raises_left, _, cont) = action p0.id (p0.pot, p1.pot, raises_left) cont
         member this.chance_init(id, cont) = chance (fun card -> modify id (fun model -> Choice2Of2 card :: model)) cont
         member this.chance_community_card(cont) =
-            let f card model = Choice2Of2 card :: model
-            chance (fun card -> modify 0 (f card) >> modify 1 (f card)) cont
+            let f id card = modify id (fun model -> Choice2Of2 card :: model)
+            chance (fun card -> f 0 card >> f 1 card) cont
         member this.terminal_call(_, _, _, id, pot) = fun _ -> terminal (id, pot)
         member this.terminal_fold(_, id, pot) = fun _ -> terminal (id, pot)
 
-let game () =
-    let d = Dictionary()
-    let p0 = Learn.AgentActive(p0)
-    game(LeducGameLearn(LeducChanceEnumarate(),p0,p0)) (([],[]), (1.0,1.0), 0UL)
+open Learn
+
+type LearningDictionary = Dictionary<GameModel, PolicyArrays<Action>>
+let game d =
+    let init = (([],[]), (1.0,1.0), 0UL)
+    // let r1 = game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d))) init
+    let d' = Dictionary()
+    let r2 = game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d'),AgentActive(d))) init
+    0.0, r2

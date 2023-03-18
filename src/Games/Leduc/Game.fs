@@ -26,14 +26,14 @@ let game (ret : ILeducGame<'r>) : 'r =
         | Fold -> ret.terminal_fold(p0, p1.id, p0.pot)
         | Call when is_call_a_check -> round_two false raises_left (p1,p0) community_card
         | Call ->
-                let p1 = {p0 with pot=p1.pot}
+                let p0 = {p0 with pot=p1.pot}
                 let id, pot =
-                    match compare_hands community_card (p1,p1) with
-                    | 1 -> p1.id, p1.pot
+                    match compare_hands community_card (p0,p1) with
+                    | 1 -> p0.id, p1.pot
                     | 0 -> p1.id, 0
-                    | -1 -> p1.id, p1.pot
+                    | -1 -> p1.id, p0.pot
                     | _ -> failwith "impossible"
-                ret.terminal_call(p1,p1,community_card,id,pot)
+                ret.terminal_call(p0,p1,community_card,id,pot)
         | Raise -> round_two false (raises_left-1) (p1,{p0 with pot=raiseBy 4 p1}) community_card
         )
 
@@ -42,8 +42,8 @@ let game (ret : ILeducGame<'r>) : 'r =
         | Fold -> ret.terminal_fold(p0, p1.id, p0.pot)
         | Call when is_call_a_check -> round_one false raises_left (p1,p0)
         | Call ->
-            let p1 = {p0 with pot=p1.pot}
-            ret.chance_community_card(round_two true 2 (if p1.id = 0 then p1,p1 else p1,p1))
+            let p0 = {p0 with pot=p1.pot}
+            ret.chance_community_card(round_two true 2 (if p0.id = 0 then p0,p1 else p1,p0))
         | Raise -> round_one false (raises_left-1) (p1, {p0 with pot=raiseBy 2 p1})
         )
 

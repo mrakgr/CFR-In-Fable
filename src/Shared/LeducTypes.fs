@@ -11,20 +11,20 @@ let player_types =
         [|Human; Random|]
 
 type LeducModel = {
+    p0_id: int
+    p0_card: Card option
+    p0_pot: int
     p1_id: int
     p1_card: Card option
-    p0_pot: int
-    p2_id: int
-    p2_card: Card option
     p1_pot: int
     community_card : Card option
 } with
     static member Default = {
-        p1_id = 0
-        p1_card = None
+        p0_id = 0
+        p0_card = None
         p0_pot = 0
-        p2_id = 1
-        p2_card = None
+        p1_id = 1
+        p1_card = None
         p1_pot = 0
         community_card = None
     }

@@ -1,6 +1,8 @@
 module Server
 
+open System.Collections.Generic
 open Elmish
+open Leduc
 open Saturn
 open Elmish.Bridge
 open Shared.Leduc.Types
@@ -8,13 +10,14 @@ open Shared.Messages
 
 type ServerModel = {
     action_cont : (Action -> unit) option
+    agent_dict : Learn.LearningDictionary
 }
 
-let init _ () : ServerModel * Cmd<_> = {action_cont=None}, []
+let init _ () : ServerModel * Cmd<_> = {action_cont=None; agent_dict=Dictionary()}, []
 let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
     match msg with
-    | FromLeducGame (MsgAction(leduc_model, msgs, allowed_actions, cont)) ->
-        dispact_client (GameState({leduc_model with p2_card=None},msgs,allowed_actions))
+    | FromLeducGame (Action(leduc_model, msgs, allowed_actions, cont)) ->
+        dispact_client (GameState({leduc_model with p1_card=None},msgs,allowed_actions))
         {model with action_cont=Some cont}, []
     | FromLeducGame (Terminal(leduc_model, msgs)) ->
         dispact_client (GameState(leduc_model,msgs,AllowedActions.Default))
@@ -22,8 +25,29 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
     | FromClient (SelectedAction action) ->
         Option.iter (fun f -> f action) model.action_cont
         {model with action_cont=None}, []
+    | FromClient (Train num_iters) ->
+        try
+            for i=1 to num_iters do
+                Learn.game model.agent_dict |> TrainingResult |> dispact_client
+        with e ->
+            printfn $"%A{e}"
+        model.agent_dict
+        |> Seq.toArray
+        |> Array.map (fun (KeyValue(k,v)) ->
+            List.map (function
+                | Choice1Of2 x -> string x
+                | Choice2Of2 x -> string x
+                ) k
+            |> fun k ->
+                let probs = CFR.Learn.normalize v.unnormalized_policy_average
+                let regs = v.current_regrets
+                let action = v.actions
+                k, (probs, regs, action) |||> Array.map3 (fun probs reg action -> $"%A{action}(%f{probs})")
+            )
+        |> Map |> TrainingModel |> dispact_client
+        model, []
     | FromClient (StartGame(p0,p1)) ->
-        model, Cmd.ofEffect (fun dispatch -> Leduc.Play.game (FromLeducGame >> dispatch) (p0,p1))
+        model, Cmd.ofEffect (fun dispatch -> Play.game (FromLeducGame >> dispatch) (p0,p1))
 
 let server =
     Bridge.mkServer Shared.Constants.endpoint init update
