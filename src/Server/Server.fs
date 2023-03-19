@@ -36,12 +36,10 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
         |> Map |> TrainingModel |> dispact_client
         model, []
     | FromClient (Test num_iters) ->
-        let d,d' = Dictionary(model.agent_dict), Dictionary(model.agent_dict)
-        for KeyValue(k,v) in d do
-            d[k] <- {v with unnormalized_policy_average=Array.replicate v.unnormalized_policy_average.Length 0.0}
+        let d = Dictionary(model.agent_dict)
         try
             for i=1 to num_iters do
-                Learn.test d d' |> TestingResult |> dispact_client
+                Learn.test d |> TestingResult |> dispact_client
         with e ->
             printfn $"%A{e}"
         d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Learn.normalize v.unnormalized_policy_average))

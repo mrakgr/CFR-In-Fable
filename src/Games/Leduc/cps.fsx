@@ -1,8 +1,3 @@
-﻿let f<'r>(ret : unit -> 'r): 'r =
-    if true then
-        ret ()
-    else
-        ret ()
+﻿let x = List.init 10 id
 
-let q = f (fun () x -> x+5)
-q 10
+List.takeWhile (fun _ -> true) x

@@ -60,15 +60,16 @@ type LeducGameLearn(chance : IChance, p0 : IAction<GameModel,Action>, p1 : IActi
 open Learn
 
 type LearningDictionary = Dictionary<GameModel, PolicyArrays<Action>>
-let test d d' =
+
+/// Tests the agent by running it against its average policy.
+let test d =
     let init = (([],[]), (1.0,1.0), 0UL)
-    let _ = game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d'))) init
-    game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d),AgentPassiveEnum(d'))) init
+    game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d,false))) init
 
-
+/// Tests the agent by running it iteratively against itself.
 let game d =
     let init = (([],[]), (1.0,1.0), 0UL)
-    let r1 = game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d))) init
-    let r2 = game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d),AgentActive(d))) init
+    let r1 = game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d,true))) init
+    let r2 = game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d,true),AgentActive(d))) init
     r1, r2
 

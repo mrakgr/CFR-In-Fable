@@ -2,7 +2,6 @@ module Index
 
 open Elmish
 open Elmish.Bridge
-open Fable.React.ReactiveComponents
 open Shared.Messages
 open Shared.Leduc.Types
 
@@ -27,8 +26,9 @@ type ClientModel = {
     p0 : PlayerType
     p1 : PlayerType
     active_tab : Tabs
+    training_iterations : int
     training_iterations_left : int
-    training_results : (float * float) list
+    training_results : (int * (float * float)) list
     training_model : TrainingModelT
     testing_iterations_left : int
     testing_results : float list
@@ -42,16 +42,18 @@ let init () : ClientModel * Cmd<_> =
         allowed_actions = AllowedActions.Default
         p0 = Human; p1 = Random
         active_tab = Train
+        training_iterations = 0
         training_iterations_left = 0
         training_results = []
         training_model = Map.empty
+
         testing_iterations_left = 0
         testing_results = []
         testing_model = Map.empty
     }, []
 
 let update msg (model : ClientModel) : ClientModel * Cmd<_> =
-    let iter = 100
+
     try
         match msg with
         | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
@@ -66,13 +68,17 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_> =
         | TabClicked tab ->
             {model with active_tab=tab}, []
         | TrainingStartClicked ->
+            let iter = 1500
             {model with training_iterations_left=model.training_iterations_left+iter}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Train iter))
         | TestingStartClicked ->
+            let iter = 200
             {model with testing_iterations_left=model.testing_iterations_left+iter; testing_results=[]; testing_model=Map.empty}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Test iter))
         | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
             {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
         | FromServer (TrainingResult(a,b)) ->
-            {model with training_results=(a,b) :: model.training_results; training_iterations_left=model.training_iterations_left-1}, []
+            let mutable i = 150
+            let x = (model.training_iterations,(a,b)) :: model.training_results |> List.takeWhile (fun _ -> if i > 0 then i <- i-1; true else false)
+            {model with training_results=x; training_iterations_left=model.training_iterations_left-1; training_iterations=model.training_iterations+1}, []
         | FromServer (TrainingModel x) ->
             {model with training_model=x}, []
         | FromServer (TestingResult x) ->
@@ -278,7 +284,7 @@ module View =
     open Feliz.Recharts
 
     [<ReactComponent>]
-    let training_results_chart(data : (float * float) list) =
+    let training_results_chart(data : (int * (float * float)) list) =
         Recharts.responsiveContainer [
             responsiveContainer.width (length.perc 100)
             responsiveContainer.height (length.perc 100)
@@ -289,20 +295,21 @@ module View =
                     Recharts.cartesianGrid [ cartesianGrid.strokeDasharray(3, 3) ]
                     Recharts.xAxis [
                         Interop.mkXAxisAttr "label" {|value="Iteration"; position="insideBottomRight"; offset= -10|}
+                        xAxis.dataKey (fst : _ -> int)
                     ]
                     Recharts.yAxis [ Interop.mkYAxisAttr "label" {|value="Reward"; angle= -90; position="insideLeft"; offset= 20 |} ]
                     Recharts.tooltip [ ]
                     Recharts.legend [ ]
                     Recharts.line [
                         line.monotone
-                        line.dataKey (fst : float * float -> _)
+                        line.dataKey (snd >> fst : _ -> float)
                         line.stroke "#00ff00"
                         line.strokeWidth 2
                         line.name "Player 0"
                     ]
                     Recharts.line [
                         line.monotone
-                        line.dataKey (snd : float * float -> _)
+                        line.dataKey (snd >> snd : _ -> float)
                         line.stroke "#0000ff"
                         line.strokeWidth 2
                         line.name "Player 1"
@@ -345,7 +352,7 @@ module View =
             prop.children [
                 Html.h1 "Game Sequence"
                 Html.h1 "Action(Probability)"
-                for (KeyValue(k,v)) in model do
+                for KeyValue(k,v) in model do
                     let model_action act =
                         let c =
                             match act with
@@ -421,8 +428,8 @@ module View =
                 Html.div [
                     Html.button [
                         prop.className "train-start-button"
-                        if 0 < model.training_iterations_left then
-                            prop.text $"Testing In Progress: %i{model.training_iterations_left} left..."
+                        if 0 < model.testing_iterations_left then
+                            prop.text $"Testing In Progress: %i{model.testing_iterations_left} left..."
                         else
                             prop.text "Click To Begin Testing"
                         prop.onClick (fun _ -> dispatch TestingStartClicked)
