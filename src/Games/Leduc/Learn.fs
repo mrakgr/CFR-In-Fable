@@ -6,7 +6,6 @@ open Shared.Leduc.Types
 open Leduc.Types
 open Leduc.Game
 
-type GameModel = Choice<Action,Card> list
 type GameModels = GameModel * GameModel
 
 type IChance =
@@ -61,9 +60,15 @@ type LeducGameLearn(chance : IChance, p0 : IAction<GameModel,Action>, p1 : IActi
 open Learn
 
 type LearningDictionary = Dictionary<GameModel, PolicyArrays<Action>>
+let test d d' =
+    let init = (([],[]), (1.0,1.0), 0UL)
+    let _ = game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d'))) init
+    game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d),AgentPassiveEnum(d'))) init
+
+
 let game d =
     let init = (([],[]), (1.0,1.0), 0UL)
-    // let r1 = game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d))) init
-    let d' = Dictionary()
-    let r2 = game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d'),AgentActive(d))) init
-    0.0, r2
+    let r1 = game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d))) init
+    let r2 = game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d),AgentActive(d))) init
+    r1, r2
+

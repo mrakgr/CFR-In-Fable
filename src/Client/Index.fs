@@ -2,12 +2,14 @@ module Index
 
 open Elmish
 open Elmish.Bridge
+open Fable.React.ReactiveComponents
 open Shared.Messages
 open Shared.Leduc.Types
 
 type Tabs =
     | Game
     | Train
+    | Test
 
 type MsgClient =
     | ClickedOn of act: Action
@@ -15,6 +17,7 @@ type MsgClient =
     | PlayerChange of id: int * pl: PlayerType
     | TabClicked of tab: Tabs
     | TrainingStartClicked
+    | TestingStartClicked
     | FromServer of msg: MsgServerToClient
 
 type ClientModel = {
@@ -26,7 +29,10 @@ type ClientModel = {
     active_tab : Tabs
     training_iterations_left : int
     training_results : (float * float) list
-    training_model : Map<string list,string []>
+    training_model : TrainingModelT
+    testing_iterations_left : int
+    testing_results : float list
+    testing_model : TrainingModelT
 }
 
 let init () : ClientModel * Cmd<_> =
@@ -35,13 +41,17 @@ let init () : ClientModel * Cmd<_> =
         message_list = []
         allowed_actions = AllowedActions.Default
         p0 = Human; p1 = Random
-        active_tab = Game
+        active_tab = Train
         training_iterations_left = 0
         training_results = []
         training_model = Map.empty
+        testing_iterations_left = 0
+        testing_results = []
+        testing_model = Map.empty
     }, []
 
 let update msg (model : ClientModel) : ClientModel * Cmd<_> =
+    let iter = 100
     try
         match msg with
         | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
@@ -56,15 +66,21 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_> =
         | TabClicked tab ->
             {model with active_tab=tab}, []
         | TrainingStartClicked ->
-            {model with training_iterations_left=model.training_iterations_left+10}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Train 10))
+            {model with training_iterations_left=model.training_iterations_left+iter}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Train iter))
+        | TestingStartClicked ->
+            {model with testing_iterations_left=model.testing_iterations_left+iter; testing_results=[]; testing_model=Map.empty}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Test iter))
         | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
             {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
-        | FromServer (TrainingResult x) ->
-            {model with training_results=x :: model.training_results; training_iterations_left=model.training_iterations_left-1}, []
+        | FromServer (TrainingResult(a,b)) ->
+            {model with training_results=(a,b) :: model.training_results; training_iterations_left=model.training_iterations_left-1}, []
         | FromServer (TrainingModel x) ->
             {model with training_model=x}, []
+        | FromServer (TestingResult x) ->
+            {model with testing_results=x :: model.testing_results; testing_iterations_left=model.testing_iterations_left-1}, []
+        | FromServer (TestingModel x) ->
+            {model with testing_model=x}, []
     with e ->
-        printfn "%A" e
+        printfn $"%A{e}"
         model, []
 
 module View =
@@ -255,6 +271,7 @@ module View =
             prop.children [
                 tab Game
                 tab Train
+                tab Test
             ]
         ]
 
@@ -294,6 +311,85 @@ module View =
             ] |> responsiveContainer.chart
         ]
 
+    [<ReactComponent>]
+    let testing_results_chart(data : float list) =
+        Recharts.responsiveContainer [
+            responsiveContainer.width (length.perc 100)
+            responsiveContainer.height (length.perc 100)
+            Recharts.lineChart [
+                lineChart.data data
+                lineChart.margin(top=5, right=30)
+                lineChart.children [
+                    Recharts.cartesianGrid [ cartesianGrid.strokeDasharray(3, 3) ]
+                    Recharts.xAxis [
+                        Interop.mkXAxisAttr "label" {|value="Iteration"; position="insideBottomRight"; offset= -10|}
+                    ]
+                    Recharts.yAxis [ Interop.mkYAxisAttr "label" {|value="Reward"; angle= -90; position="insideLeft"; offset= 20 |} ]
+                    Recharts.tooltip [ ]
+                    Recharts.legend [ ]
+                    Recharts.line [
+                        line.monotone
+                        line.dataKey (id : float -> _)
+                        line.stroke "#00ff00"
+                        line.strokeWidth 2
+                        line.name "Player 0"
+                    ]
+                ]
+            ] |> responsiveContainer.chart
+        ]
+
+    [<ReactMemoComponent>]
+    let table (model : TrainingModelT) =
+        Html.div [
+            prop.className "train-table border"
+            prop.children [
+                Html.h1 "Game Sequence"
+                Html.h1 "Action(Probability)"
+                for (KeyValue(k,v)) in model do
+                    let model_action act =
+                        let c =
+                            match act with
+                            | Fold -> "train-action-fold"
+                            | Call -> "train-action-call"
+                            | Raise -> "train-action-raise"
+                        Html.div [
+                            prop.className c
+                            prop.text (act.ToString())
+                        ]
+                    Html.div [
+                        prop.className "train-sequences"
+                        prop.children [
+                            for k in k do
+                                match k with
+                                | Choice1Of2 act ->
+                                    model_action act
+                                | Choice2Of2 card ->
+                                    Html.div [
+                                        prop.className "train-card"
+                                        prop.text (card.ToString())
+                                    ]
+                        ]
+                    ]
+                    Html.div [
+                        prop.className "train-action-probs"
+                        prop.children [
+                            for act,prob in v do
+                                Html.div [
+                                    prop.className "train-action-probs-item"
+                                    prop.children [
+                                        model_action act
+                                        Html.div [
+                                            prop.className "train-probability"
+                                            let prob = (prob*100.0).ToString("0.##")
+                                            prop.text $"(%s{prob})"
+                                        ]
+                                    ]
+                                ]
+                        ]
+                    ]
+            ]
+        ]
+
     let train_ui (model: ClientModel) (dispatch : MsgClient -> unit) : ReactElement =
         Html.div [
             prop.className "train-ui border"
@@ -308,23 +404,37 @@ module View =
                         prop.onClick (fun _ -> dispatch TrainingStartClicked)
                     ]
                 ]
-                // Html.div [
-                //     prop.className "train-chart"
-                //     prop.children [
-                //         training_results_chart(model.training_results |> List.rev)
-                //     ]
-                // ]
-                Html.hr []
                 Html.div [
-                    prop.className "train-table"
+                    prop.className "train-chart border"
                     prop.children [
-                        Html.div "Sequence"
-                        Html.div "Probabilities"
-                        for (KeyValue(k,v)) in model.training_model do
-                            k |> String.concat ", " |> Html.text |> Html.div
-                            v |> Array.map string |> String.concat ", " |> Html.text |> Html.div
+                        training_results_chart(model.training_results |> List.rev)
                     ]
                 ]
+                table model.training_model
+            ]
+        ]
+
+    let test_ui (model: ClientModel) (dispatch : MsgClient -> unit) : ReactElement =
+        Html.div [
+            prop.className "train-ui border"
+            prop.children [
+                Html.div [
+                    Html.button [
+                        prop.className "train-start-button"
+                        if 0 < model.training_iterations_left then
+                            prop.text $"Testing In Progress: %i{model.training_iterations_left} left..."
+                        else
+                            prop.text "Click To Begin Testing"
+                        prop.onClick (fun _ -> dispatch TestingStartClicked)
+                    ]
+                ]
+                Html.div [
+                    prop.className "train-chart border"
+                    prop.children [
+                        testing_results_chart(model.testing_results |> List.rev)
+                    ]
+                ]
+                table model.testing_model
             ]
         ]
 
@@ -339,6 +449,8 @@ module View =
                     message_ui model
                 | Train ->
                     train_ui model dispatch
+                | Test ->
+                    test_ui model dispatch
             ]
         ]
 

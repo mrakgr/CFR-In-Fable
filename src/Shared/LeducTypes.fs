@@ -10,6 +10,8 @@ let player_types =
     Array.fold (fun s x -> Map.add (x.ToString()) x s) Map.empty
         [|Human; Random|]
 
+type GameModel = Choice<Action,Card> list
+
 type LeducModel = {
     p0_id: int
     p0_card: Card option

@@ -35,7 +35,7 @@ module Learn =
             let new_current_regrets = Array.map2 (fun new_regret old_regret -> opp_prob * new_regret + old_regret |> max 0.0) new_regrets policy_arrays.current_regrets
             // TODO: Why multiply by the self probability?
             // https://www.reddit.com/r/reinforcementlearning/comments/11ujf28/in_the_enumerative_cfr_algorithm_why_does_the/
-            let new_unnormalized_policy_average = Array.map2 (+) (normalize new_current_regrets) policy_arrays.unnormalized_policy_average
+            let new_unnormalized_policy_average = Array.map2 (fun a b -> a * self_prob + b) (normalize new_current_regrets) policy_arrays.unnormalized_policy_average
             d[model] <- {current_regrets=new_current_regrets; unnormalized_policy_average=new_unnormalized_policy_average; actions=actions}
 
         interface IAction<'model,'action> with
@@ -45,6 +45,13 @@ module Learn =
                 let avg_reward = Array.fold2 (fun s x policy_prob -> s + x * policy_prob) 0.0 rewards current_policy
                 update_policy model actions rewards avg_reward path_prob
                 avg_reward
+
+    type AgentPassiveEnum<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>) =
+        interface IAction<'model,'action> with
+            member this.action(model, actions, path_prob, cont) =
+                let policy = normalize (get_policy' d model actions).unnormalized_policy_average
+                let rewards = Array.map2 (fun act policy_prob -> cont (act, path_prob *. policy_prob)) actions policy
+                Array.fold2 (fun s x policy_prob -> s + x * policy_prob) 0.0 rewards policy
 
     type AgentPassiveSample<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>) =
         let rng = Random()
@@ -66,10 +73,3 @@ module Learn =
                 let policy = normalize (get_policy' d model actions).unnormalized_policy_average
                 let act,policy_prob = sample actions policy
                 cont (act, path_prob *. policy_prob)
-
-    type AgentPassiveEnum<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>) =
-        interface IAction<'model,'action> with
-            member this.action(model, actions, path_prob, cont) =
-                let policy = normalize (get_policy' d model actions).unnormalized_policy_average
-                let rewards = Array.map2 (fun act policy_prob -> cont (act, path_prob *. policy_prob)) actions policy
-                Array.fold2 (fun s x policy_prob -> s + x * policy_prob) 0.0 rewards policy
