@@ -29,15 +29,12 @@ module Learn =
     let get_policy (d : Dictionary<'model,PolicyArrays<'action>>) model num_action = normalize (get_policy' d model num_action).current_regrets
 
     type AgentActive<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>) =
-        let update_policy model actions rewards avg_reward (self_prob, opp_prob as path_prob) =
+        let update_policy model actions rewards avg_reward (self_prob, opp_prob) =
             let policy_arrays = get_policy' d model actions
             let new_regrets = Array.map (fun reward -> reward - avg_reward) rewards
             let new_current_regrets = Array.map2 (fun new_regret old_regret -> opp_prob * new_regret + old_regret |> max 0.0) new_regrets policy_arrays.current_regrets
-            // TODO: Why multiply by the self probability?
-            // https://www.reddit.com/r/reinforcementlearning/comments/11ujf28/in_the_enumerative_cfr_algorithm_why_does_the/
-            let f0, f1 = self_prob, 2.0
-            let new_unnormalized_policy_average =
-                Array.map2 (fun a b -> (f0 * a + f1 * b) / (f0 + f1)) (normalize new_current_regrets) policy_arrays.unnormalized_policy_average
+            let f0, f1 = self_prob, 1.0
+            let new_unnormalized_policy_average = Array.map2 (fun a b -> (f0 * a + f1 * b) / (f0 + f1)) (normalize new_current_regrets) policy_arrays.unnormalized_policy_average
             d[model] <- {policy_arrays with current_regrets=new_current_regrets; unnormalized_policy_average=new_unnormalized_policy_average}
 
         interface IAction<'model,'action> with

@@ -1,5 +1,6 @@
 module Index
 
+open System
 open Elmish
 open Elmish.Bridge
 open Shared.Messages
@@ -17,6 +18,8 @@ type MsgClient =
     | TabClicked of tab: Tabs
     | TrainingStartClicked
     | TestingStartClicked
+    | TrainingInputIterationsChanged of string
+    | TestingInputIterationsChanged of string
     | FromServer of msg: MsgServerToClient
 
 type ClientModel = {
@@ -26,10 +29,12 @@ type ClientModel = {
     p0 : PlayerType
     p1 : PlayerType
     active_tab : Tabs
+    training_run_iterations : string
     training_iterations : int
     training_iterations_left : int
     training_results : (int * (float * float)) list
     training_model : TrainingModelT
+    testing_run_iterations : string
     testing_iterations_left : int
     testing_results : float list
     testing_model : TrainingModelT
@@ -46,14 +51,14 @@ let init () : ClientModel * Cmd<_> =
         training_iterations_left = 0
         training_results = []
         training_model = Map.empty
-
+        training_run_iterations = "300"
         testing_iterations_left = 0
         testing_results = []
         testing_model = Map.empty
+        testing_run_iterations = "100"
     }, []
 
 let update msg (model : ClientModel) : ClientModel * Cmd<_> =
-
     try
         match msg with
         | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
@@ -68,10 +73,12 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_> =
         | TabClicked tab ->
             {model with active_tab=tab}, []
         | TrainingStartClicked ->
-            let iter = 1500
+            let iter = int model.training_run_iterations
             {model with training_iterations_left=model.training_iterations_left+iter}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Train iter))
+        | TrainingInputIterationsChanged s -> {model with training_run_iterations=s}, []
+        | TestingInputIterationsChanged s -> {model with testing_run_iterations=s}, []
         | TestingStartClicked ->
-            let iter = 200
+            let iter = int model.testing_run_iterations
             {model with testing_iterations_left=model.testing_iterations_left+iter; testing_results=[]; testing_model=Map.empty}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Test iter))
         | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
             {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
@@ -397,20 +404,44 @@ module View =
             ]
         ]
 
+    [<ReactComponent>]
+    let training_ui_menu (training_run_iterations : string, training_iterations_left : int, msg) start (iters_changed : string -> _) =
+        Html.div [
+            prop.className "train-ui-menu"
+            prop.children [
+                let is_input_valid, _ = Int32.TryParse(training_run_iterations)
+                Html.button [
+                    prop.className "train-start-button"
+                    if 0 < training_iterations_left then
+                        prop.text $"%s{msg} In Progress: %i{training_iterations_left} left..."
+                    else
+                        prop.text $"Click To Begin %s{msg}"
+                    prop.onClick start
+                    prop.disabled (not is_input_valid)
+                ]
+                Html.div [
+                    prop.className "train-label"
+                    prop.children [
+                        Html.pre "Number Of Iterations:  "
+                        Html.input [
+                            prop.className "train-input"
+                            prop.value training_run_iterations
+                            if not is_input_valid then
+                                prop.style [style.color "red"]
+                            prop.onChange iters_changed
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
     let train_ui (model: ClientModel) (dispatch : MsgClient -> unit) : ReactElement =
         Html.div [
             prop.className "train-ui border"
             prop.children [
-                Html.div [
-                    Html.button [
-                        prop.className "train-start-button"
-                        if 0 < model.training_iterations_left then
-                            prop.text $"Training In Progress: %i{model.training_iterations_left} left..."
-                        else
-                            prop.text "Click To Begin Training"
-                        prop.onClick (fun _ -> dispatch TrainingStartClicked)
-                    ]
-                ]
+                training_ui_menu (model.training_run_iterations, model.training_iterations_left, "Training")
+                    (fun _ -> dispatch TrainingStartClicked)
+                    (TrainingInputIterationsChanged >> dispatch)
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
@@ -425,16 +456,9 @@ module View =
         Html.div [
             prop.className "train-ui border"
             prop.children [
-                Html.div [
-                    Html.button [
-                        prop.className "train-start-button"
-                        if 0 < model.testing_iterations_left then
-                            prop.text $"Testing In Progress: %i{model.testing_iterations_left} left..."
-                        else
-                            prop.text "Click To Begin Testing"
-                        prop.onClick (fun _ -> dispatch TestingStartClicked)
-                    ]
-                ]
+                training_ui_menu (model.testing_run_iterations, model.testing_iterations_left, "Testing")
+                    (fun _ -> dispatch TestingStartClicked)
+                    (TestingInputIterationsChanged >> dispatch)
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
