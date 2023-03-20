@@ -45,7 +45,7 @@ let init () : ClientModel * Cmd<_> =
         leduc_model = LeducModel.Default
         message_list = []
         allowed_actions = AllowedActions.Default
-        p0 = Human; p1 = Random
+        p0 = Human; p1 = CFR
         active_tab = Train
         training_iterations = 0
         training_iterations_left = 0

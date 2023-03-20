@@ -5,10 +5,10 @@ type Card = King | Queen | Jack
 type Player = { card : Card; id : int; pot : int }
 type Mask = uint64
 
-type PlayerType = Human | Random
+type PlayerType = Human | Random | CFR
 let player_types =
     Array.fold (fun s x -> Map.add (x.ToString()) x s) Map.empty
-        [|Human; Random|]
+        [|Human; Random; CFR|]
 
 type GameModel = Choice<Action,Card> list
 

@@ -33,6 +33,8 @@ module Learn =
             let policy_arrays = get_policy' d model actions
             let new_regrets = Array.map (fun reward -> reward - avg_reward) rewards
             let new_current_regrets = Array.map2 (fun new_regret old_regret -> opp_prob * new_regret + old_regret |> max 0.0) new_regrets policy_arrays.current_regrets
+            // Why multiply by the self probability?
+            // https://www.reddit.com/r/reinforcementlearning/comments/11ujf28/in_the_enumerative_cfr_algorithm_why_does_the/
             let f0, f1 = self_prob, 1.0
             let new_unnormalized_policy_average = Array.map2 (fun a b -> (f0 * a + f1 * b) / (f0 + f1)) (normalize new_current_regrets) policy_arrays.unnormalized_policy_average
             d[model] <- {policy_arrays with current_regrets=new_current_regrets; unnormalized_policy_average=new_unnormalized_policy_average}
@@ -59,23 +61,24 @@ module Learn =
                 let rewards = Array.map2 (fun act policy_prob -> cont (act, path_prob *. policy_prob)) actions policy
                 Array.fold2 (fun s x policy_prob -> s + x * policy_prob) 0.0 rewards policy
 
+    let sample (rng : Random) (actions: 'action []) (normalized_policy_average : float []) =
+        let r = rng.NextDouble()
+        let rec loop i prob_sum =
+            if i < actions.Length then
+                let prob_cur = normalized_policy_average[i]
+                let prob_sum = prob_sum + prob_cur
+                if r < prob_sum then actions[i], prob_cur
+                else loop (i+1) prob_sum
+            else // Shouldn't ever trigger, but better safe than sorry.
+                let i = Array.findIndexBack ((<) 0.0) normalized_policy_average
+                actions[i], normalized_policy_average[i]
+        loop 0 0.0
+
     type AgentPassiveSample<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>) =
         let rng = Random()
-        let sample (actions: 'action []) (normalized_policy_average : float []) =
-            let r = rng.NextDouble()
-            let rec loop i prob_sum =
-                if i < actions.Length then
-                    let prob_cur = normalized_policy_average[i]
-                    let prob_sum = prob_sum + prob_cur
-                    if r < prob_sum then actions[i], prob_cur
-                    else loop (i+1) prob_sum
-                else // Shouldn't ever trigger, but better safe than sorry.
-                    let i = Array.findIndexBack ((<) 0.0) normalized_policy_average
-                    actions[i], normalized_policy_average[i]
-            loop 0 0.0
 
         interface IAction<'model,'action> with
             member this.action(model, actions, path_prob, cont) =
                 let policy = normalize (get_policy' d model actions).unnormalized_policy_average
-                let act,policy_prob = sample actions policy
+                let act,policy_prob = sample rng actions policy
                 cont (act, path_prob *. policy_prob)

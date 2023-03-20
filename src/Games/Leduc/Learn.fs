@@ -22,13 +22,15 @@ type LeducChanceEnumarate() =
                 ) deck mask
             reward / float count
 
-type LeducGameLearn(chance : IChance, p0 : IAction<GameModel,Action>, p1 : IAction<GameModel,Action>) =
+module Utils =
     let get id x = if id = 0 then fst x else snd x
     let put id x y = if id = 0 then y, snd x else fst x, y
     let modify id f x = if id = 0 then f (fst x), snd x else fst x, f (snd x)
     let swap id (a,b) = if id = 0 then a,b else b,a
     let reward_negate id x = if id = 0 then x else -x
 
+open Utils
+type LeducGameLearn(chance : IChance, p0 : IAction<GameModel,Action>, p1 : IAction<GameModel,Action>) =
     let action id allowed_actions cont (model,probs,mask) =
         (get id (p0, p1)).action(get id model,AllowedActions.FromDataToArray allowed_actions,swap id probs,fun (act,probs) ->
             let f id = modify id (fun model -> Choice1Of2 act :: model)

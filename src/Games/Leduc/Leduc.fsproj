@@ -8,8 +8,8 @@
     <None Include="cps.fsx" />
     <Compile Include="Types.fs" />
     <Compile Include="Game.fs" />
-    <Compile Include="Play.fs" />
     <Compile Include="Learn.fs" />
+    <Compile Include="Play.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CFR\CFR.fsproj" />
