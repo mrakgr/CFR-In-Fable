@@ -30,22 +30,17 @@ module Learn =
 
     type AgentActive<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>) =
         let update_policy model actions rewards avg_reward (self_prob, opp_prob) =
-            let policy_arrays = get_policy' d model actions
-            let new_regrets = Array.map (fun reward -> reward - avg_reward) rewards
-            let new_current_regrets = Array.map2 (fun new_regret old_regret -> opp_prob * new_regret + old_regret |> max 0.0) new_regrets policy_arrays.current_regrets
-            // Why multiply by the self probability?
-            // https://www.reddit.com/r/reinforcementlearning/comments/11ujf28/in_the_enumerative_cfr_algorithm_why_does_the/
-            let new_unnormalized_policy_average = Array.map2 (fun a b -> (a + b) * 0.5) (normalize new_current_regrets) policy_arrays.unnormalized_policy_average
-            d[model] <- {policy_arrays with current_regrets=new_current_regrets; unnormalized_policy_average=new_unnormalized_policy_average}
+            if opp_prob > 0.0 then
+                let policy_arrays = get_policy' d model actions
+                let new_regrets = Array.map (fun reward -> reward - avg_reward) rewards
+                let new_current_regrets = Array.map2 (fun new_regret old_regret -> opp_prob * new_regret + old_regret |> max 0.0) new_regrets policy_arrays.current_regrets
+                let new_unnormalized_policy_average = Array.map2 (fun a b -> (a + b) * 0.5) (normalize new_current_regrets) policy_arrays.unnormalized_policy_average
+                d[model] <- {policy_arrays with current_regrets=new_current_regrets; unnormalized_policy_average=new_unnormalized_policy_average}
 
         interface IAction<'model,'action> with
             member this.action(model, actions, path_prob, cont) =
                 let current_policy : float [] = get_policy d model actions
-                let rewards =
-                    Array.map2 (fun act policy_prob ->
-                        if fst path_prob = 0 && snd path_prob = 0 then 0.0
-                        else cont (act, path_prob *. policy_prob)
-                        ) actions current_policy
+                let rewards = Array.map2 (fun act policy_prob -> cont (act, path_prob *. policy_prob)) actions current_policy
                 let avg_reward = Array.fold2 (fun s x policy_prob -> s + x * policy_prob) 0.0 rewards current_policy
                 update_policy model actions rewards avg_reward path_prob
                 avg_reward
