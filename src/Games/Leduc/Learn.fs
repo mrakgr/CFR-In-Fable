@@ -69,7 +69,7 @@ let test d =
     game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d,false))) init
 
 /// Tests the agent by running it iteratively against itself.
-let game d =
+let train d =
     let init = (([],[]), (1.0,1.0), 0UL)
     let r1 = game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d,true))) init
     let r2 = game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d,true),AgentActive(d))) init

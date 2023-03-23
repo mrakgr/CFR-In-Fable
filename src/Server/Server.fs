@@ -29,7 +29,7 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
         let d = model.agent_cfr
         try
             for i=1 to num_iters do
-                Learn.game d |> TrainingResult |> dispact_client
+                Learn.train d |> TrainingResult |> dispact_client
         with e ->
             printfn $"%A{e}"
         d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Learn.normalize v.unnormalized_policy_average))

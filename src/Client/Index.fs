@@ -291,7 +291,7 @@ module View =
     open Feliz.Recharts
 
     [<ReactComponent>]
-    let training_results_chart(data : (int * (float * float)) list) =
+    let training_results_chart_template (lines : ReactElement list) (data : obj list) =
         Recharts.responsiveContainer [
             responsiveContainer.width (length.perc 100)
             responsiveContainer.height (length.perc 100)
@@ -307,50 +307,40 @@ module View =
                     Recharts.yAxis [ Interop.mkYAxisAttr "label" {|value="Reward"; angle= -90; position="insideLeft"; offset= 20 |} ]
                     Recharts.tooltip [ ]
                     Recharts.legend [ ]
-                    Recharts.line [
-                        line.monotone
-                        line.dataKey (snd >> fst : _ -> float)
-                        line.stroke "#00ff00"
-                        line.strokeWidth 2
-                        line.name "Player 0"
-                    ]
-                    Recharts.line [
-                        line.monotone
-                        line.dataKey (snd >> snd : _ -> float)
-                        line.stroke "#0000ff"
-                        line.strokeWidth 2
-                        line.name "Player 1"
-                    ]
+                    yield! lines
+
                 ]
             ] |> responsiveContainer.chart
         ]
 
-    [<ReactComponent>]
-    let testing_results_chart(data : float list) =
-        Recharts.responsiveContainer [
-            responsiveContainer.width (length.perc 100)
-            responsiveContainer.height (length.perc 100)
-            Recharts.lineChart [
-                lineChart.data data
-                lineChart.margin(top=5, right=30)
-                lineChart.children [
-                    Recharts.cartesianGrid [ cartesianGrid.strokeDasharray(3, 3) ]
-                    Recharts.xAxis [
-                        Interop.mkXAxisAttr "label" {|value="Iteration"; position="insideBottomRight"; offset= -10|}
-                    ]
-                    Recharts.yAxis [ Interop.mkYAxisAttr "label" {|value="Reward"; angle= -90; position="insideLeft"; offset= 20 |} ]
-                    Recharts.tooltip [ ]
-                    Recharts.legend [ ]
-                    Recharts.line [
-                        line.monotone
-                        line.dataKey (id : float -> _)
-                        line.stroke "#00ff00"
-                        line.strokeWidth 2
-                        line.name "Player 0"
-                    ]
-                ]
-            ] |> responsiveContainer.chart
+    let training_results_chart_lines = [
+        Recharts.line [
+            line.monotone
+            line.dataKey (snd >> fst : _ -> float)
+            line.stroke "#00ff00"
+            line.strokeWidth 2
+            line.name "Player 0"
         ]
+        Recharts.line [
+            line.monotone
+            line.dataKey (snd >> snd : _ -> float)
+            line.stroke "#0000ff"
+            line.strokeWidth 2
+            line.name "Player 1"
+        ]
+    ]
+    let training_results_chart = training_results_chart_template training_results_chart_lines
+
+    let testing_results_chart_lines = [
+        Recharts.line [
+            line.monotone
+            line.dataKey (id : float -> _)
+            line.stroke "#00ff00"
+            line.strokeWidth 2
+            line.name "Player 0"
+        ]
+    ]
+    let testing_results_chart = training_results_chart_template testing_results_chart_lines
 
     [<ReactMemoComponent>]
     let table (model : TrainingModelT) =
@@ -435,6 +425,7 @@ module View =
             ]
         ]
 
+    let obj_rev x = List.fold (fun s x -> box x :: s) [] x
     let train_ui (model: ClientModel) (dispatch : MsgClient -> unit) : ReactElement =
         Html.div [
             prop.className "train-ui border"
@@ -445,7 +436,7 @@ module View =
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
-                        training_results_chart(model.training_results |> List.rev)
+                        training_results_chart(obj_rev model.training_results)
                     ]
                 ]
                 table model.training_model
@@ -462,7 +453,8 @@ module View =
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
-                        testing_results_chart(model.testing_results |> List.rev)
+
+                        testing_results_chart(obj_rev model.testing_results)
                     ]
                 ]
                 table model.testing_model
