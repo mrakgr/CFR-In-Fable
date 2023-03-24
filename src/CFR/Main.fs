@@ -89,14 +89,39 @@ module Sampling =
     type AgentActiveSample<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>, d' : Dictionary<'model,ValueArrays>) =
         let rng = Random()
 
+        let get_values' model actions =
+            match d'.TryGetValue model with
+            | true, v -> v
+            | _ ->
+                let v = Array.zeroCreate (Array.length actions)
+                d'[model] <- v
+                v
+
+        let get_values model actions =
+            get_values' model actions
+            |> Array.map (fun (struct (a,b)) -> if b = 0.0 then 0.0 else a / b)
+
+        let update_values model actions i x (self_prob, opp_prob as path_prob) =
+            let ar = get_values' model actions
+            let struct (a,b) = ar[i]
+            let decay = 0.5
+            ar[i] <- (a + opp_prob * x) * decay, (b + opp_prob) * decay
+
         interface IAction<'model,'action> with
             member this.action(model, actions, path_prob, cont) =
                 let current_policy : float [] = get_policy d model actions
                 let rewards =
-                    let i = sample' rng current_policy
-                    let value_arrays : float [] = get_values d model
+                    let i',_ = sample' rng current_policy
+                    let value_arrays : float [] = get_values model actions
                     Array.mapi2 (fun i act policy_prob ->
-                        cont (act, path_prob *. policy_prob)
+                        let exp_y = value_arrays[i]
+                        if i = i' then
+                            let x = cont (act, path_prob *. policy_prob)
+                            update_values model actions i x path_prob
+                            let y = exp_y
+                            (x - y) / policy_prob + exp_y
+                        else
+                            exp_y
                         ) actions current_policy
                 let avg_reward = Array.fold2 (fun s x policy_prob -> s + x * policy_prob) 0.0 rewards current_policy
                 update_policy d model actions rewards avg_reward path_prob
