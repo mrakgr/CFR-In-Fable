@@ -1,7 +1,7 @@
 ﻿module Leduc.Play
 open System.Collections.Generic
 open CFR
-open CFR.Learn
+open CFR.Enumerative
 open Leduc.Learn
 open Shared.Constants
 open Shared.Leduc.Types

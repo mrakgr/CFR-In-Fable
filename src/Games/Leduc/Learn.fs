@@ -59,19 +59,19 @@ type LeducGameLearn(chance : IChance, p0 : IAction<GameModel,Action>, p1 : IActi
         member this.terminal_call(_, _, _, id, pot) = fun _ -> terminal (id, pot)
         member this.terminal_fold(_, id, pot) = fun _ -> terminal (id, pot)
 
-open Learn
+open Enumerative
 
 type LearningDictionary = Dictionary<GameModel, PolicyArrays<Action>>
 
 /// Tests the agent by running it against its average policy.
 let test d =
     let init = (([],[]), (1.0,1.0), 0UL)
-    game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d,false))) init
+    game(LeducGameLearn(LeducChanceEnumarate(),AgentActiveEnum(d),AgentPassiveEnum(d,false))) init
 
 /// Tests the agent by running it iteratively against itself.
 let train d =
     let init = (([],[]), (1.0,1.0), 0UL)
-    let r1 = game(LeducGameLearn(LeducChanceEnumarate(),AgentActive(d),AgentPassiveEnum(d,true))) init
-    let r2 = game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d,true),AgentActive(d))) init
+    let r1 = game(LeducGameLearn(LeducChanceEnumarate(),AgentActiveEnum(d),AgentPassiveEnum(d,true))) init
+    let r2 = game(LeducGameLearn(LeducChanceEnumarate(),AgentPassiveEnum(d,true),AgentActiveEnum(d))) init
     r1, r2
 

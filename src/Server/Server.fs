@@ -32,7 +32,7 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
                 Learn.train d |> TrainingResult |> dispact_client
         with e ->
             printfn $"%A{e}"
-        d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Learn.normalize v.unnormalized_policy_average))
+        d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Enumerative.normalize v.unnormalized_policy_average))
         |> Map |> TrainingModel |> dispact_client
         model, []
     | FromClient (Test num_iters) ->
@@ -42,7 +42,7 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
                 Learn.test d |> TestingResult |> dispact_client
         with e ->
             printfn $"%A{e}"
-        d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Learn.normalize v.unnormalized_policy_average))
+        d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Enumerative.normalize v.unnormalized_policy_average))
         |> Map |> TestingModel |> dispact_client
         model, []
     | FromClient (StartGame(p0,p1)) ->
