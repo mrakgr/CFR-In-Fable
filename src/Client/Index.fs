@@ -16,6 +16,7 @@ type MsgClient =
     | StartGame
     | PlayerChange of id: int * pl: PlayerType
     | TabClicked of tab: Tabs
+    | CFRPlayerSelected of string
     | TrainingStartClicked
     | TestingStartClicked
     | TrainingInputIterationsChanged of string
@@ -29,6 +30,7 @@ type ClientModel = {
     p0 : PlayerType
     p1 : PlayerType
     active_tab : Tabs
+    training_cfr_player_type : CFRPlayerType
     training_run_iterations : string
     training_iterations : int
     training_iterations_left : int
@@ -45,8 +47,9 @@ let init () : ClientModel * Cmd<_> =
         leduc_model = LeducModel.Default
         message_list = []
         allowed_actions = AllowedActions.Default
-        p0 = Human; p1 = CFR
+        p0 = Human; p1 = CFR MC
         active_tab = Train
+        training_cfr_player_type = MC
         training_iterations = 0
         training_iterations_left = 0
         training_results = []
@@ -74,12 +77,14 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_> =
             {model with active_tab=tab}, []
         | TrainingStartClicked ->
             let iter = int model.training_run_iterations
-            {model with training_iterations_left=model.training_iterations_left+iter}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Train iter))
+            {model with training_iterations_left=model.training_iterations_left+iter}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Train (iter, model.training_cfr_player_type)))
         | TrainingInputIterationsChanged s -> {model with training_run_iterations=s}, []
         | TestingInputIterationsChanged s -> {model with testing_run_iterations=s}, []
+        | CFRPlayerSelected s ->
+            {model with training_cfr_player_type=cfr_player_types[s]}, []
         | TestingStartClicked ->
             let iter = int model.testing_run_iterations
-            {model with testing_iterations_left=model.testing_iterations_left+iter; testing_results=[]; testing_model=Map.empty}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Test iter))
+            {model with testing_iterations_left=model.testing_iterations_left+iter; testing_results=[]; testing_model=Map.empty}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Test (iter, model.training_cfr_player_type)))
         | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
             {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
         | FromServer (TrainingResult(a,b)) ->
@@ -395,7 +400,7 @@ module View =
         ]
 
     [<ReactComponent>]
-    let training_ui_menu (training_run_iterations : string, training_iterations_left : int, msg) start (iters_changed : string -> _) =
+    let training_ui_menu (cfr_select_value : string, training_run_iterations : string, training_iterations_left : int, msg) (select_on_change : string -> _) start (iters_changed : string -> _) =
         Html.div [
             prop.className "train-ui-menu"
             prop.children [
@@ -408,6 +413,12 @@ module View =
                         prop.text $"Click To Begin %s{msg}"
                     prop.onClick start
                     prop.disabled (not is_input_valid)
+                ]
+                Html.select [
+                    prop.className "train-cfr-player-type"
+                    prop.children (Map.keys cfr_player_types |> Seq.map Html.option)
+                    prop.value cfr_select_value
+                    prop.onChange select_on_change
                 ]
                 Html.div [
                     prop.className "train-label"
@@ -430,7 +441,8 @@ module View =
         Html.div [
             prop.className "train-ui border"
             prop.children [
-                training_ui_menu (model.training_run_iterations, model.training_iterations_left, "Training")
+                training_ui_menu (string model.training_cfr_player_type, model.training_run_iterations, model.training_iterations_left, "Training")
+                    (CFRPlayerSelected >> dispatch)
                     (fun _ -> dispatch TrainingStartClicked)
                     (TrainingInputIterationsChanged >> dispatch)
                 Html.div [
@@ -447,7 +459,8 @@ module View =
         Html.div [
             prop.className "train-ui border"
             prop.children [
-                training_ui_menu (model.testing_run_iterations, model.testing_iterations_left, "Testing")
+                training_ui_menu (string model.training_cfr_player_type, model.testing_run_iterations, model.testing_iterations_left, "Testing")
+                    (CFRPlayerSelected >> dispatch)
                     (fun _ -> dispatch TestingStartClicked)
                     (TestingInputIterationsChanged >> dispatch)
                 Html.div [

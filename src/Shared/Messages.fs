@@ -13,8 +13,8 @@ type MsgServerToClient =
 type MsgServerFromClient =
     | SelectedAction of Action
     | StartGame of p0: PlayerType * p1: PlayerType
-    | Train of num_iter: int
-    | Test of num_iter: int
+    | Train of num_iter: int * pl: CFRPlayerType
+    | Test of num_iter: int * pl: CFRPlayerType
 
 type MsgServer =
     | FromLeducGame of MsgLeduc

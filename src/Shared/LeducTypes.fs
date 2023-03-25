@@ -5,10 +5,14 @@ type Card = King | Queen | Jack
 type Player = { card : Card; id : int; pot : int }
 type Mask = uint64
 
-type PlayerType = Human | Random | CFR
-let player_types =
-    Array.fold (fun s x -> Map.add (x.ToString()) x s) Map.empty
-        [|Human; Random; CFR|]
+type CFRPlayerType = Enum | MC
+type PlayerType = Human | Random | CFR of CFRPlayerType
+let cfr_player_types' = [|Enum; MC|]
+let player_types' = [|yield Human; yield Random; for x in cfr_player_types' -> CFR x|]
+let player_types_template x = Array.fold (fun s x -> Map.add (x.ToString()) x s) Map.empty x
+let player_types = player_types_template player_types'
+let cfr_player_types = player_types_template cfr_player_types'
+
 
 type GameModel = Choice<Action,Card> list
 

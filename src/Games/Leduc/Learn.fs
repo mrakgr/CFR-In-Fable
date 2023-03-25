@@ -60,8 +60,10 @@ type LeducGameLearn(chance : IChance, p0 : IAction<GameModel,Action>, p1 : IActi
         member this.terminal_fold(_, id, pot) = fun _ -> terminal (id, pot)
 
 open Enumerative
+open Sampling
 
-type LearningDictionary = Dictionary<GameModel, PolicyArrays<Action>>
+type PolicyDictionary = Dictionary<GameModel, PolicyArrays<Action>>
+type ValueDictionary = Dictionary<GameModel, ValueArrays>
 
 /// Tests the agent by running it against its average policy.
 let test d =

@@ -10,10 +10,11 @@ open Shared.Messages
 
 type ServerModel = {
     action_cont : (Action -> unit) option
-    agent_cfr : Learn.LearningDictionary
+    agent_cfr_enum : Learn.PolicyDictionary
+    agent_cfr_mc : Learn.PolicyDictionary * Learn.ValueDictionary
 }
 
-let init _ () : ServerModel * Cmd<_> = {action_cont=None; agent_cfr=Dictionary()}, []
+let init _ () : ServerModel * Cmd<_> = {action_cont=None; agent_cfr_enum=Dictionary(); agent_cfr_mc=Dictionary(),Dictionary()}, []
 let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
     match msg with
     | FromLeducGame (Action(leduc_model, msgs, allowed_actions, cont)) ->
@@ -25,8 +26,9 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
     | FromClient (SelectedAction action) ->
         Option.iter (fun f -> f action) model.action_cont
         {model with action_cont=None}, []
-    | FromClient (Train num_iters) ->
-        let d = model.agent_cfr
+    | FromClient (Train (num_iters, pl)) -> // TODO
+        let d =
+            model.agent_cfr
         try
             for i=1 to num_iters do
                 Learn.train d |> TrainingResult |> dispact_client
@@ -35,7 +37,7 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
         d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Enumerative.normalize v.unnormalized_policy_average))
         |> Map |> TrainingModel |> dispact_client
         model, []
-    | FromClient (Test num_iters) ->
+    | FromClient (Test (num_iters, pl)) -> // TODO
         let d = Dictionary(model.agent_cfr)
         try
             for i=1 to num_iters do

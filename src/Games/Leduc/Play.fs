@@ -133,6 +133,9 @@ type LeducGamePlay(p : ILeducPlayer) =
 
 let game d dispatch (p0,p1) =
     let msgs = Map.empty |> Map.add 0 [] |> Map.add 1 []
-    let f = function Human -> LeducActionHuman dispatch :> ILeducAction | Random -> LeducActionRandom() | CFR -> LeducActionCFR(d)
+    let f = function
+        | Human -> LeducActionHuman dispatch :> ILeducAction
+        | Random -> LeducActionRandom()
+        | CFR _ -> LeducActionCFR(d)
     game(LeducGamePlay (Leduc2P(LeducChanceSample(),LeducTerminalDispatch dispatch,f p0,f p1))) (LeducModel.Default, msgs, ([],[]), 0UL)
 
