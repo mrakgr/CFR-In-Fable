@@ -31,7 +31,7 @@ type LeducActionHuman(dispatch) =
         member this.action(ui_model, msgs, allowed_actions, _, cont) = Action(ui_model,msgs,allowed_actions,cont) |> dispatch
 
 type LeducActionCFR(d : Dictionary<GameModel,PolicyArrays<Action>>) =
-    let agent : IAction<_,_> = AgentPassiveSample(d)
+    let agent : IAction<_,_> = AgentPassiveSample(d,false)
 
     interface ILeducAction with
         member this.action(ui_model, _, allowed_actions, game_model, cont) =
@@ -131,11 +131,7 @@ type LeducGamePlay(p : ILeducPlayer) =
         member this.terminal_fold(_, id, pot) = fun (model, msgs, _, _) ->
             terminal (id,pot) (model,msgs)
 
-let game d dispatch (p0,p1) =
+let game dispatch (p0,p1) =
     let msgs = Map.empty |> Map.add 0 [] |> Map.add 1 []
-    let f = function
-        | Human -> LeducActionHuman dispatch :> ILeducAction
-        | Random -> LeducActionRandom()
-        | CFR _ -> LeducActionCFR(d)
-    game(LeducGamePlay (Leduc2P(LeducChanceSample(),LeducTerminalDispatch dispatch,f p0,f p1))) (LeducModel.Default, msgs, ([],[]), 0UL)
+    game(LeducGamePlay (Leduc2P(LeducChanceSample(),LeducTerminalDispatch dispatch,p0,p1))) (LeducModel.Default, msgs, ([],[]), 0UL)
 

@@ -72,12 +72,16 @@ module Enumerative =
         let i, prob = sample' rng normalized_policy_average
         actions[i], prob
 
-    type AgentPassiveSample<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>) =
+    type AgentPassiveSample<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>, use_current_policy) =
         let rng = Random()
 
         interface IAction<'model,'action> with
             member this.action(model, actions, path_prob, cont) =
-                let policy = normalize (get_policy' d model actions).unnormalized_policy_average
+                let policy =
+                    let x = get_policy' d model actions
+                    if use_current_policy then x.current_regrets else x.unnormalized_policy_average
+                    |> normalize
+
                 let act,policy_prob = sample rng actions policy
                 cont (act, path_prob *. policy_prob)
 
