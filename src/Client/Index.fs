@@ -295,7 +295,6 @@ module View =
 
     open Feliz.Recharts
 
-    [<ReactComponent>]
     let chart_template lines xAxisDataKey (data : _ list) =
         Recharts.responsiveContainer [
             responsiveContainer.width (length.perc 100)
@@ -319,7 +318,7 @@ module View =
             ] |> responsiveContainer.chart
         ]
 
-    let training_results_chart : (int * (float * float)) list -> ReactElement =
+    module TrainingChart =
         let lines = [
             Recharts.line [
                 line.monotone
@@ -336,10 +335,12 @@ module View =
                 line.name "Player 1"
             ]
         ]
-        let xAxisDataKey = xAxis.dataKey (fst : _ -> int)
-        chart_template lines (Some xAxisDataKey)
+        let xAxisDataKey = Some (xAxis.dataKey (fst : _ -> int))
 
-    let testing_results_chart : float list -> ReactElement =
+        [<ReactComponent>]
+        let view (data : (int * (float * float)) list) = chart_template lines xAxisDataKey data
+
+    module TestingChart =
         let lines = [
             Recharts.line [
                 line.monotone
@@ -349,9 +350,11 @@ module View =
                 line.name "Player 0"
             ]
         ]
-        chart_template lines None
 
-    [<ReactMemoComponent>]
+        [<ReactComponent>]
+        let view (data : float list) = chart_template lines None data
+
+    [<ReactComponent>]
     let table (model : TrainingModelT) =
         Html.div [
             prop.className "train-table border"
@@ -451,7 +454,7 @@ module View =
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
-                        training_results_chart(List.rev model.training_results)
+                        TrainingChart.view (List.rev model.training_results)
                     ]
                 ]
                 table model.training_model
@@ -469,7 +472,7 @@ module View =
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
-                        testing_results_chart(List.rev model.testing_results)
+                        TestingChart.view (List.rev model.testing_results)
                     ]
                 ]
                 table model.testing_model
