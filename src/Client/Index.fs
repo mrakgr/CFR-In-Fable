@@ -296,7 +296,7 @@ module View =
     open Feliz.Recharts
 
     [<ReactComponent>]
-    let training_results_chart(data : (int * (float * float)) list) =
+    let chart_template lines xAxisDataKey (data : _ list) =
         Recharts.responsiveContainer [
             responsiveContainer.width (length.perc 100)
             responsiveContainer.height (length.perc 100)
@@ -307,55 +307,49 @@ module View =
                     Recharts.cartesianGrid [ cartesianGrid.strokeDasharray(3, 3) ]
                     Recharts.xAxis [
                         Interop.mkXAxisAttr "label" {|value="Iteration"; position="insideBottomRight"; offset= -10|}
-                        xAxis.dataKey (fst : _ -> int)
+                        match xAxisDataKey with
+                        | Some x -> x : IXAxisProperty
+                        | _ -> ()
                     ]
                     Recharts.yAxis [ Interop.mkYAxisAttr "label" {|value="Reward"; angle= -90; position="insideLeft"; offset= 20 |} ]
                     Recharts.tooltip [ ]
                     Recharts.legend [ ]
-                    Recharts.line [
-                        line.monotone
-                        line.dataKey (snd >> fst : _ -> float)
-                        line.stroke "#00ff00"
-                        line.strokeWidth 2
-                        line.name "Player 0"
-                    ]
-                    Recharts.line [
-                        line.monotone
-                        line.dataKey (snd >> snd : _ -> float)
-                        line.stroke "#0000ff"
-                        line.strokeWidth 2
-                        line.name "Player 1"
-                    ]
+                    yield! lines
                 ]
             ] |> responsiveContainer.chart
         ]
 
-    [<ReactComponent>]
-    let testing_results_chart(data : float list) =
-        Recharts.responsiveContainer [
-            responsiveContainer.width (length.perc 100)
-            responsiveContainer.height (length.perc 100)
-            Recharts.lineChart [
-                lineChart.data data
-                lineChart.margin(top=5, right=30)
-                lineChart.children [
-                    Recharts.cartesianGrid [ cartesianGrid.strokeDasharray(3, 3) ]
-                    Recharts.xAxis [
-                        Interop.mkXAxisAttr "label" {|value="Iteration"; position="insideBottomRight"; offset= -10|}
-                    ]
-                    Recharts.yAxis [ Interop.mkYAxisAttr "label" {|value="Reward"; angle= -90; position="insideLeft"; offset= 20 |} ]
-                    Recharts.tooltip [ ]
-                    Recharts.legend [ ]
-                    Recharts.line [
-                        line.monotone
-                        line.dataKey (id : float -> _)
-                        line.stroke "#00ff00"
-                        line.strokeWidth 2
-                        line.name "Player 0"
-                    ]
-                ]
-            ] |> responsiveContainer.chart
+    let training_results_chart : (int * (float * float)) list -> ReactElement =
+        let lines = [
+            Recharts.line [
+                line.monotone
+                line.dataKey (snd >> fst : _ -> float)
+                line.stroke "#00ff00"
+                line.strokeWidth 2
+                line.name "Player 0"
+            ]
+            Recharts.line [
+                line.monotone
+                line.dataKey (snd >> snd : _ -> float)
+                line.stroke "#0000ff"
+                line.strokeWidth 2
+                line.name "Player 1"
+            ]
         ]
+        let xAxisDataKey = xAxis.dataKey (fst : _ -> int)
+        chart_template lines (Some xAxisDataKey)
+
+    let testing_results_chart : float list -> ReactElement =
+        let lines = [
+            Recharts.line [
+                line.monotone
+                line.dataKey (id : float -> _)
+                line.stroke "#00ff00"
+                line.strokeWidth 2
+                line.name "Player 0"
+            ]
+        ]
+        chart_template lines None
 
     [<ReactMemoComponent>]
     let table (model : TrainingModelT) =
