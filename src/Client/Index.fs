@@ -318,7 +318,7 @@ module View =
             ] |> responsiveContainer.chart
         ]
 
-    module TrainingChart =
+    module TrainChart =
         let lines = [
             Recharts.line [
                 line.monotone
@@ -340,7 +340,7 @@ module View =
         [<ReactComponent>]
         let view (data : (int * (float * float)) list) = chart_template lines xAxisDataKey data
 
-    module TestingChart =
+    module TestChart =
         let lines = [
             Recharts.line [
                 line.monotone
@@ -454,7 +454,7 @@ module View =
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
-                        TrainingChart.view (List.rev model.training_results)
+                        TrainChart.view (List.rev model.training_results)
                     ]
                 ]
                 table model.training_model
@@ -472,7 +472,7 @@ module View =
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
-                        TestingChart.view (List.rev model.testing_results)
+                        TestChart.view (List.rev model.testing_results)
                     ]
                 ]
                 table model.testing_model

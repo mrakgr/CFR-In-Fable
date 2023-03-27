@@ -35,7 +35,16 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
             with e ->
                 printfn $"%A{e}"
         let train_enum d = train_enum_template (fun () -> Learn.train_enum d); d
-        let train_mc (d,d') = train_enum_template (fun () -> Learn.train_mc d d'); d
+        let train_mc (d,d') =
+            train_enum_template (fun () ->
+                let inline f op (a,b) (a',b') = op a a', op b b'
+                let iters = 500
+                let mutable r = 0.0,0.0
+                for i=1 to iters do
+                    r <- f (+) r (Learn.train_mc d d')
+                f (/) r (float iters, float iters)
+                )
+            d
         let d =
             match pl with
             | Enum -> train_enum model.agent_cfr_enum
