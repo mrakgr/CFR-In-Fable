@@ -14,29 +14,33 @@ let private parallel_bit_deposit_u64 (value, mask) =
 
     loop 0UL 0 0
 
+let len (x : 'el []) (mask : uint64) =
+    let popcnt = Numerics.BitOperations.PopCount mask
+    x.Length - popcnt
 /// Samples an element from an array given a mask.
 /// Returns the sampled action and the new mask.
 /// Whem mask = 0, it samples a completely random action.
 /// The pop count of the mask should be less than the length of the array
 let sample (x : 'el []) (mask : uint64) =
+    let len = len x mask
     let i =
-        let popcnt = Numerics.BitOperations.PopCount mask
-        let i = Random.Shared.Next(0, x.Length - popcnt)
+        let i = Random.Shared.Next(0, len)
         if Runtime.Intrinsics.X86.Bmi2.IsSupported then
             Runtime.Intrinsics.X86.Bmi2.X64.ParallelBitDeposit(1UL <<< i, ~~~mask)
         else
             parallel_bit_deposit_u64(1UL <<< i, ~~~mask)
         |> Numerics.BitOperations.TrailingZeroCount
-    x[i], mask ||| (1UL <<< i)
+    x[i], mask ||| (1UL <<< i), 1.0 / float len
 
 /// Iterates over all the elements of the array given the mask.
 let inline iter f (x : 'el []) (mask : uint64) =
+    let len = len x mask
     x |> Array.iteri (fun i x ->
-        if mask &&& (1UL <<< i) = 0UL then f (x, mask ||| (1UL <<< i))
+        if mask &&& (1UL <<< i) = 0UL then f (x, mask ||| (1UL <<< i), 1.0 / float len)
         )
 
 /// Filters out the elements based on the array.
 let filter (x : 'el []) (mask : uint64) =
     let ar = ResizeArray(x.Length)
-    iter (fst >> ar.Add) x mask
+    iter (fun (a,_,_) -> ar.Add a) x mask
     ar.ToArray()

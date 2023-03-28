@@ -21,11 +21,11 @@ type ILeducPlayer =
 
 type LeducChanceSample() =
     interface ILeducChance with
-        member this.chance(_, mask, cont) = sample_card mask |> cont
+        member this.chance(_, mask, cont) = sample_card mask |> fun (card,mask,_) -> cont (card,mask)
 
 type LeducActionRandom() =
     interface ILeducAction with
-        member this.action(_, _, allowed_actions, _, cont) = sample_action (AllowedActions.Mask allowed_actions) |> fst |> cont
+        member this.action(_, _, allowed_actions, _, cont) = sample_action (AllowedActions.Mask allowed_actions) |> fun (a,_,_) -> cont a
 type LeducActionHuman(dispatch) =
     interface ILeducAction with
         member this.action(ui_model, msgs, allowed_actions, _, cont) = Action(ui_model,msgs,allowed_actions,cont) |> dispatch
@@ -35,7 +35,7 @@ type LeducActionCFR(d : Dictionary<GameModel,PolicyArrays<Action>>) =
 
     interface ILeducAction with
         member this.action(ui_model, _, allowed_actions, game_model, cont) =
-            agent.action(Utils.get ui_model.p0_id game_model,AllowedActions.Array allowed_actions,(1.0,1.0),fun (a,_) -> cont a; 0.0) |> ignore
+            agent.action(Utils.get ui_model.p0_id game_model,AllowedActions.Array allowed_actions,(1.0,1.0,1.0),fun (a,_) -> cont a; 0.0) |> ignore
 
 type LeducTerminalIgnore() =
     interface ILeducTerminal with

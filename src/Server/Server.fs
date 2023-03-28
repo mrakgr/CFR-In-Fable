@@ -28,15 +28,15 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
         Option.iter (fun f -> f action) model.action_cont
         {model with action_cont=None}, []
     | FromClient (Train (num_iters, pl)) ->
-        let inline train_enum_template f =
+        let inline train_template f =
             try
                 for i=1 to num_iters do
                     f() |> TrainingResult |> dispact_client
             with e ->
                 printfn $"%A{e}"
-        let train_enum d = train_enum_template (fun () -> Learn.train_enum d); d
+        let train_enum d = train_template (fun () -> Learn.train_enum d); d
         let train_mc (d,d') =
-            train_enum_template (fun () ->
+            train_template (fun () ->
                 let inline f op (a,b) (a',b') = op a a', op b b'
                 let iters = 500
                 let mutable r = 0.0,0.0
@@ -52,7 +52,7 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
         d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Enumerative.normalize v.unnormalized_policy_average))
         |> Map |> TrainingModel |> dispact_client
         model, []
-    | FromClient (Test (num_iters, pl)) -> // TODO
+    | FromClient (Test (num_iters, pl)) ->
         let d =
             match pl with
             | Enum -> model.agent_cfr_enum
