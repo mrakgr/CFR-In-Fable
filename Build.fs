@@ -100,4 +100,5 @@ let dependencies = [
 ]
 
 [<EntryPoint>]
-let main args = runOrDefault args
+let main args =
+    runOrDefault args

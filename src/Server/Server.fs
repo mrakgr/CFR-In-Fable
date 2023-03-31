@@ -91,5 +91,6 @@ let app =
 
 [<EntryPoint>]
 let main _ =
+    printfn "Name: %s; PID: %i" (System.Diagnostics.Process.GetCurrentProcess().ProcessName) (System.Diagnostics.Process.GetCurrentProcess().Id)
     run app
     0

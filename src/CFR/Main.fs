@@ -111,10 +111,11 @@ module Sampling =
             |> Array.map (fun (struct (a,b)) -> if b = 0.0 then 0.0 else a / b)
 
         let update_values model actions i x (self_prob, opp_prob, beh_prob as path_prob) =
-            let ar = get_values' model actions
-            let struct (a,b) = ar[i]
-            let decay = 0.5
-            ar[i] <- (a + opp_prob / beh_prob * x) * decay, (b + opp_prob / beh_prob) * decay
+            if opp_prob > 0.0 then
+                let ar = get_values' model actions
+                let struct (a,b) = ar[i]
+                let decay = 0.5
+                ar[i] <- (a + opp_prob / beh_prob * x) * decay, (b + opp_prob / beh_prob) * decay
 
         interface IAction<'model,'action> with
             member this.action(model, actions, path_prob, cont) =
