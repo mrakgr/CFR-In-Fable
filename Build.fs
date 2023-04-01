@@ -26,10 +26,11 @@ Target.create "Bundle" (fun _ ->
 )
 
 Target.create "Azure" (fun _ ->
+    let app_name = "mrakgr-web-app-helloworld"
     let web = webApp {
-        name "safe_template_full_tutorial"
-        operating_system OS.Windows
-        runtime_stack Runtime.DotNet60
+        name app_name
+        operating_system OS.Linux
+        runtime_stack Runtime.DotNet70
         zip_deploy "deploy"
     }
     let deployment = arm {
@@ -38,7 +39,7 @@ Target.create "Azure" (fun _ ->
     }
 
     deployment
-    |> Deploy.execute "safe_template_full_tutorial" Deploy.NoParameters
+    |> Deploy.execute app_name Deploy.NoParameters
     |> ignore
 )
 
