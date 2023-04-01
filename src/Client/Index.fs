@@ -495,4 +495,4 @@ module View =
             ]
         ]
 
-let view = View.main
+let view model dispatch = View.main model dispatch // Note: Since Fable 4, this function musn't be partially applied. Don't reduce the args.
