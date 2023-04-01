@@ -10,7 +10,7 @@ export default ({mode}) => {
     return defineConfig({
         root: process.env.ROOT,
         build: {
-            outDir: resolve(process.cwd(),"deploy")
+            outDir: resolve(process.cwd(),"deploy/public")
         },
         server: {
             port: process.env.PORT,

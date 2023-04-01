@@ -26,9 +26,8 @@ Target.create "Bundle" (fun _ ->
 )
 
 Target.create "Azure" (fun _ ->
-    let app_name = "mrakgr-web-app-helloworld"
     let web = webApp {
-        name app_name
+        name "mrakgr-cfr-in-fable"
         operating_system OS.Linux
         runtime_stack Runtime.DotNet70
         zip_deploy "deploy"
@@ -39,7 +38,7 @@ Target.create "Azure" (fun _ ->
     }
 
     deployment
-    |> Deploy.execute app_name Deploy.NoParameters
+    |> Deploy.execute "Web-Apps" Deploy.NoParameters
     |> ignore
 )
 

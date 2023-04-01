@@ -86,7 +86,9 @@ let webApp = server
 let app =
     application {
         use_router webApp
+        use_static "public"
         app_config Giraffe.useWebSockets
+        url "http://localhost:80"
     }
 
 [<EntryPoint>]
