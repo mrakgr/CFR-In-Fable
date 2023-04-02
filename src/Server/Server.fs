@@ -89,7 +89,6 @@ let app =
         app_config Giraffe.useWebSockets
         use_static "public"
         use_gzip
-        url "http://localhost:80"
     }
 
 [<EntryPoint>]
