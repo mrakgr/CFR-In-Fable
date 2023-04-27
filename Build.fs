@@ -27,9 +27,9 @@ Target.create "Bundle" (fun _ ->
 
 Target.create "Azure" (fun _ ->
     let web = webApp {
-        name "safe_template_full_tutorial"
-        operating_system OS.Windows
-        runtime_stack Runtime.DotNet60
+        name "mrakgr-cfr-in-fable"
+        operating_system OS.Linux
+        runtime_stack Runtime.DotNet70
         zip_deploy "deploy"
     }
     let deployment = arm {
@@ -38,7 +38,7 @@ Target.create "Azure" (fun _ ->
     }
 
     deployment
-    |> Deploy.execute "safe_template_full_tutorial" Deploy.NoParameters
+    |> Deploy.execute "Web-Apps" Deploy.NoParameters
     |> ignore
 )
 
@@ -100,4 +100,5 @@ let dependencies = [
 ]
 
 [<EntryPoint>]
-let main args = runOrDefault args
+let main args =
+    runOrDefault args
