@@ -5,11 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="vite.config.js" />
-    <None Include="env\.env.proj2" />
-    <None Include="env\.env.proj1" />
-    <None Include="env\.env.html2" />
-    <None Include="env\.env.html1" />
-    <None Include="env\.env" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Build.fs" />
   </ItemGroup>

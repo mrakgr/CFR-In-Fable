@@ -14,7 +14,7 @@ Program.mkProgram Index.init Index.update Index.view
         Bridge.endpoint Shared.Constants.endpoint
         |> Bridge.withMapping Index.FromServer
         )
-|> Program.withReactSynchronous "elmish-app"
+|> Program.withReactSynchronous "app"
 #if DEBUG
 |> Program.withDebugger
 #endif
