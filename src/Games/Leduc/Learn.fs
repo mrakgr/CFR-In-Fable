@@ -1,6 +1,5 @@
 ﻿module Leduc.Learn
 
-open System.Collections.Generic
 open CFR
 open Shared.Leduc.Types
 open Leduc.Types
@@ -66,9 +65,6 @@ type LeducGameLearn(chance : IChance, p0 : IAction<GameModel,Action>, p1 : IActi
 
 open Enumerative
 open Sampling
-
-type PolicyDictionary = Dictionary<GameModel, PolicyArrays<Action>>
-type ValueDictionary = Dictionary<GameModel, ValueArrays>
 
 let init = (([],[]), (1.0,1.0,1.0), 0UL)
 /// Tests the agent by running it against its average policy.

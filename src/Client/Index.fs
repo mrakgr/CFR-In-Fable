@@ -5,6 +5,7 @@ open Elmish
 open Elmish.Bridge
 open Shared.Messages
 open Shared.Leduc.Types
+open Shared.Leduc.Types.UI
 
 type Tabs =
     | Game
@@ -30,17 +31,13 @@ type ClientModel = {
     p0 : PlayerType
     p1 : PlayerType
     active_tab : Tabs
-    training_cfr_player_type : CFRPlayerType
-    training_run_iterations : string
-    training_iterations : int
-    training_iterations_left : int
-    training_results : (int * (float * float)) list
-    training_model : TrainingModelT
-    testing_run_iterations : string
-    testing_iterations_left : int
-    testing_results : float list
-    testing_model : TrainingModelT
+    active_cfr_player : CFRPlayerType
+    cfr_players : Map<CFRPlayerType,UICFRPlayerModel>
 }
+
+let init_player_model = function
+    | Enum -> ModelEnum Map.empty
+    | MC -> ModelMC (Map.empty, Map.empty)
 
 let init () : ClientModel * Cmd<_> =
     {
@@ -49,23 +46,39 @@ let init () : ClientModel * Cmd<_> =
         allowed_actions = AllowedActions.Default
         p0 = Human; p1 = CFR MC
         active_tab = Train
-        training_cfr_player_type = MC
-        training_iterations = 0
-        training_iterations_left = 0
-        training_results = []
-        training_model = Map.empty
-        training_run_iterations = "50"
-        testing_iterations_left = 0
-        testing_results = []
-        testing_model = Map.empty
-        testing_run_iterations = "100"
+        active_cfr_player = MC
+        cfr_players =
+            [
+                for pl_type in cfr_player_types' do
+                    let model = init_player_model pl_type
+                    pl_type, {
+                        training_model = model
+                        testing_model = model
+                        training_iterations = 0
+                        training_iterations_left = 0
+                        training_results = []
+                        training_run_iterations = "50"
+                        testing_iterations_left = 0
+                        testing_results = []
+                        testing_run_iterations = "100"
+                        }
+            ] |> Map
     }, []
 
 let update msg (model : ClientModel) : ClientModel * Cmd<_> =
     try
+        let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
+            let m,cmd = f model.cfr_players[active_cfr_player]
+            {model with cfr_players=Map.add model.active_cfr_player m model.cfr_players}, cmd
+        let inline update f = update' model.active_cfr_player f
         match msg with
         | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
-        | StartGame -> model, Cmd.bridgeSend(FromClient (MsgServerFromClient.StartGame(model.p0, model.p1)))
+        | StartGame ->
+            let get_model = function
+                | Human -> PLM_Human
+                | Random -> PLM_Random
+                | CFR x -> PLM_CFR model.cfr_players[x].training_model
+            model, Cmd.bridgeSend(FromClient (MsgClientToServer.StartGame(get_model model.p0, get_model model.p1)))
         | PlayerChange(id, pl) ->
             let model =
                 match id with
@@ -76,27 +89,34 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_> =
         | TabClicked tab ->
             {model with active_tab=tab}, []
         | TrainingStartClicked ->
-            let iter = int model.training_run_iterations
-            {model with training_iterations_left=model.training_iterations_left+iter}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Train (iter, model.training_cfr_player_type)))
-        | TrainingInputIterationsChanged s -> {model with training_run_iterations=s}, []
-        | TestingInputIterationsChanged s -> {model with testing_run_iterations=s}, []
-        | CFRPlayerSelected s ->
-            {model with training_cfr_player_type=cfr_player_types[s]}, []
+            update <| fun m ->
+                let iter = int m.training_run_iterations
+                {m with training_iterations_left=m.training_iterations_left + iter},
+                Cmd.bridgeSend(FromClient (MsgClientToServer.Train (iter, m.training_model)))
+        | TrainingInputIterationsChanged s -> update <| fun m -> {m with training_run_iterations = s}, []
+        | TestingInputIterationsChanged s -> update <| fun m -> {m with testing_run_iterations=s}, []
+        | CFRPlayerSelected s -> {model with active_cfr_player=cfr_player_types[s]}, []
         | TestingStartClicked ->
-            let iter = int model.testing_run_iterations
-            {model with testing_iterations_left=model.testing_iterations_left+iter; testing_results=[]; testing_model=Map.empty}, Cmd.bridgeSend(FromClient (MsgServerFromClient.Test (iter, model.training_cfr_player_type)))
+            update <| fun m ->
+                let iter = int m.testing_run_iterations
+                {m with testing_iterations_left=m.testing_iterations_left+iter; testing_results=[]; testing_model=init_player_model model.active_cfr_player},
+                Cmd.bridgeSend(FromClient (MsgClientToServer.Test (iter, m.training_model)))
         | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
             {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
         | FromServer (TrainingResult(a,b)) ->
-            let mutable i = 150
-            let x = (model.training_iterations,(a,b)) :: model.training_results |> List.takeWhile (fun _ -> if i > 0 then i <- i-1; true else false)
-            {model with training_results=x; training_iterations_left=model.training_iterations_left-1; training_iterations=model.training_iterations+1}, []
-        | FromServer (TrainingModel x) ->
-            {model with training_model=x}, []
+            update <| fun m ->
+                let mutable i = 150
+                let x = (m.training_iterations,(a,b)) :: m.training_results |> List.takeWhile (fun _ -> if i > 0 then i <- i-1; true else false)
+                {m with training_results=x; training_iterations_left=m.training_iterations_left-1; training_iterations=m.training_iterations+1}, []
+        | FromServer (TrainingModel (a,x)) ->
+            update' a <| fun m ->
+                {m with training_model=x}, []
         | FromServer (TestingResult x) ->
-            {model with testing_results=x :: model.testing_results; testing_iterations_left=model.testing_iterations_left-1}, []
-        | FromServer (TestingModel x) ->
-            {model with testing_model=x}, []
+            update <| fun m ->
+                {m with testing_results=x :: m.testing_results; testing_iterations_left=m.testing_iterations_left-1}, []
+        | FromServer (TestingModel (a,x)) ->
+            update' a <| fun m ->
+                {m with testing_model=x}, []
     with e ->
         printfn $"%A{e}"
         model, []
@@ -355,7 +375,10 @@ module View =
         let view (data : float list) = chart_template lines None data
 
     [<ReactComponent>]
-    let table (model : TrainingModelT) =
+    let table is_train (model : CFRPlayerModel) =
+        let model =
+            match model with
+            | ModelEnum x | ModelMC(x,_) -> x
         Html.div [
             prop.className "train-table border"
             prop.children [
@@ -388,8 +411,10 @@ module View =
                     ]
                     Html.div [
                         prop.className "train-action-probs"
-                        prop.children [
-                            for act,prob in v do
+                        prop.children (
+                            let act = v.actions
+                            let prob = Shared.Utils.CFR.normalize (if is_train then v.current_regrets else v.unnormalized_policy_average)
+                            (act,prob) ||> Array.map2 (fun act prob ->
                                 Html.div [
                                     prop.className "train-action-probs-item"
                                     prop.children [
@@ -400,8 +425,8 @@ module View =
                                             prop.text $"(%s{prob})"
                                         ]
                                     ]
-                                ]
-                        ]
+                                ])
+                        )
                     ]
             ]
         ]
@@ -447,17 +472,18 @@ module View =
         Html.div [
             prop.className "train-ui border"
             prop.children [
-                training_ui_menu (string model.training_cfr_player_type, model.training_run_iterations, model.training_iterations_left, "Training")
+                let m = model.cfr_players[model.active_cfr_player]
+                training_ui_menu (string model.active_cfr_player, m.training_run_iterations, m.training_iterations_left, "Training")
                     (CFRPlayerSelected >> dispatch)
                     (fun _ -> dispatch TrainingStartClicked)
                     (TrainingInputIterationsChanged >> dispatch)
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
-                        TrainChart.view (List.rev model.training_results)
+                        TrainChart.view (List.rev m.training_results)
                     ]
                 ]
-                table model.training_model
+                table true m.training_model
             ]
         ]
 
@@ -465,17 +491,18 @@ module View =
         Html.div [
             prop.className "train-ui border"
             prop.children [
-                training_ui_menu (string model.training_cfr_player_type, model.testing_run_iterations, model.testing_iterations_left, "Testing")
+                let m = model.cfr_players[model.active_cfr_player]
+                training_ui_menu (string model.active_cfr_player, m.testing_run_iterations, m.testing_iterations_left, "Testing")
                     (CFRPlayerSelected >> dispatch)
                     (fun _ -> dispatch TestingStartClicked)
                     (TestingInputIterationsChanged >> dispatch)
                 Html.div [
                     prop.className "train-chart border"
                     prop.children [
-                        TestChart.view (List.rev model.testing_results)
+                        TestChart.view (List.rev m.testing_results)
                     ]
                 ]
-                table model.testing_model
+                table false m.testing_model
             ]
         ]
 

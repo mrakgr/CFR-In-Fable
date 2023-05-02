@@ -5,6 +5,8 @@ open CFR.Enumerative
 open Leduc.Learn
 open Shared.Constants
 open Shared.Leduc.Types
+open Shared.Leduc.Types.CFR
+open Shared.Leduc.Types.UI
 open Leduc.Types
 open Leduc.Game
 

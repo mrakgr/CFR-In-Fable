@@ -2,6 +2,8 @@
 
 open System
 open System.Collections.Generic
+open Shared.Utils.CFR
+open Shared.Leduc.Types.CFR
 
 type PathProbs = float * float * float
 type IAction<'model,'action> =
@@ -14,12 +16,6 @@ module Operators =
 
 module Enumerative =
     open Operators
-    let normalize (x : float []) =
-        let s = Array.sum x
-        if s = 0.0 then Array.replicate x.Length (1.0 / float x.Length)
-        else Array.map (fun x -> x / s) x
-
-    type PolicyArrays<'action> = {current_regrets : float[]; unnormalized_policy_average : float[]; actions : 'action []}
 
     let get_policy' (d : Dictionary<'model,PolicyArrays<'action>>) model actions =
         match d.TryGetValue(model) with
@@ -76,7 +72,7 @@ module Enumerative =
         let i, prob = sample' rng normalized_policy_average 0.0
         actions[i], prob
 
-    type AgentPassiveSample<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>, use_current_policy) =
+    type AgentPassiveSample<'model,'action when 'model: equality>(d : PolicyDictionary<'model,'action>, use_current_policy) =
         let rng = Random()
 
         interface IAction<'model,'action> with
@@ -93,9 +89,7 @@ module Sampling =
     open Operators
     open Enumerative
 
-    type ValueArrays = (struct (float * float )) []
-
-    type AgentActiveSample<'model,'action when 'model: equality>(d : Dictionary<'model,PolicyArrays<'action>>, d' : Dictionary<'model,ValueArrays>) =
+    type AgentActiveSample<'model,'action when 'model: equality>(d : PolicyDictionary<'model,'action>, d' : ValueDictionary<'model>) =
         let rng = Random()
 
         let get_values' model actions =

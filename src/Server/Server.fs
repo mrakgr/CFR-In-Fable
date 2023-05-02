@@ -8,14 +8,13 @@ open Saturn
 open Elmish.Bridge
 open Shared.Leduc.Types
 open Shared.Messages
+open Shared.Utils
 
 type ServerModel = {
     action_cont : (Action -> unit) option
-    agent_cfr_enum : Learn.PolicyDictionary
-    agent_cfr_mc : Learn.PolicyDictionary * Learn.ValueDictionary
 }
 
-let init _ () : ServerModel * Cmd<_> = {action_cont=None; agent_cfr_enum=Dictionary(); agent_cfr_mc=Dictionary(),Dictionary()}, []
+let init _ () : ServerModel * Cmd<_> = {action_cont=None}, []
 let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
     match msg with
     | FromLeducGame (Action(leduc_model, msgs, allowed_actions, cont)) ->
@@ -34,8 +33,13 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
                     f() |> TrainingResult |> dispact_client
             with e ->
                 printfn $"%A{e}"
-        let train_enum d = train_template (fun () -> Learn.train_enum d); d
-        let train_mc (d,d') =
+        let train_enum (d : Map<_,_>) =
+            let d = Dictionary d
+            train_template (fun () -> Learn.train_enum d)
+            UI.Enum, UI.ModelEnum (to_map d)
+        let train_mc (d : Map<_,_>,d' : Map<_,_>) =
+            let d = Dictionary d
+            let d' = Dictionary d'
             train_template (fun () ->
                 let inline f op (a,b) (a',b') = op a a', op b b'
                 let iters = 500
@@ -44,36 +48,40 @@ let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
                     r <- f (+) r (Learn.train_mc d d')
                 f (/) r (float iters, float iters)
                 )
-            d
-        let d =
-            match pl with
-            | Enum -> train_enum model.agent_cfr_enum
-            | MC -> train_mc model.agent_cfr_mc
-        d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Enumerative.normalize v.unnormalized_policy_average))
-        |> Map |> TrainingModel |> dispact_client
+            UI.MC, UI.ModelMC (to_map d, to_map d')
+        match pl with
+        | UI.ModelEnum x -> train_enum x
+        | UI.ModelMC(a,b) -> train_mc (a, b)
+        |> TrainingModel |> dispact_client
         model, []
     | FromClient (Test (num_iters, pl)) ->
-        let d =
-            match pl with
-            | Enum -> model.agent_cfr_enum
-            | MC -> model.agent_cfr_mc |> fst
-            |> Dictionary
         try
-            for i=1 to num_iters do
-                Learn.test d |> TestingResult |> dispact_client
+            let test_template d =
+                for i=1 to num_iters do
+                    Learn.test d |> TestingResult |> dispact_client
+            let test_enum (d : Map<_,_>) =
+                let d = Dictionary d
+                test_template d
+                UI.Enum, UI.ModelEnum (to_map d)
+            let test_mc (d : Map<_,_>,d' : Map<_,_>) =
+                let d = Dictionary d
+                test_template d
+                UI.MC, UI.ModelMC (to_map d, d')
+            match pl with
+            | UI.ModelEnum x -> test_enum x
+            | UI.ModelMC(a,b) -> test_mc (a, b)
+            |> TestingModel |> dispact_client
         with e ->
             printfn $"%A{e}"
-        d |> Seq.map (fun (KeyValue(k,v)) -> List.rev k, Array.zip v.actions (CFR.Enumerative.normalize v.unnormalized_policy_average))
-        |> Map |> TestingModel |> dispact_client
         model, []
     | FromClient (StartGame(p0,p1)) ->
         model, Cmd.ofEffect (fun dispatch ->
             let dispatch = FromLeducGame >> dispatch
             let f = function
-                | Human -> LeducActionHuman dispatch :> ILeducAction
-                | Random -> LeducActionRandom()
-                | CFR Enum -> LeducActionCFR(model.agent_cfr_enum)
-                | CFR MC -> LeducActionCFR(model.agent_cfr_mc |> fst)
+                | UI.PLM_Human -> LeducActionHuman dispatch :> ILeducAction
+                | UI.PLM_Random -> LeducActionRandom()
+                | UI.PLM_CFR (UI.ModelEnum x)
+                | UI.PLM_CFR (UI.ModelMC(x,_)) -> LeducActionCFR(Dictionary x)
             game dispatch (f p0,f p1)
             )
 

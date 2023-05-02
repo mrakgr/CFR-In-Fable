@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Constants.fs" />
+    <Compile Include="Utils.fs" />
     <Compile Include="LeducTypes.fs" />
     <Compile Include="Messages.fs" />
   </ItemGroup>
