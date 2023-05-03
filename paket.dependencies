@@ -1,6 +1,7 @@
 source https://api.nuget.org/v3/index.json
 storage: none
 
+nuget argu
 nuget Elmish.Bridge.Client
 nuget Elmish.Bridge.Giraffe
 nuget Feliz.Recharts
