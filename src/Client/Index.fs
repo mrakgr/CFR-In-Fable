@@ -22,6 +22,7 @@ type MsgClient =
     | TestingStartClicked
     | TrainingInputIterationsChanged of string
     | TestingInputIterationsChanged of string
+    | ConnectionClosed of pl: CFRPlayerType * is_train: bool
     | FromServer of msg: MsgServerToClient
 
 type ClientModel = {
@@ -91,16 +92,18 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_> =
         | TrainingStartClicked ->
             update <| fun m ->
                 let iter = int m.training_run_iterations
-                {m with training_iterations_left=m.training_iterations_left + iter},
-                Cmd.bridgeSend(FromClient (MsgClientToServer.Train (iter, m.training_model)))
+                {m with training_iterations_left=m.training_iterations_left + iter}, []
         | TrainingInputIterationsChanged s -> update <| fun m -> {m with training_run_iterations = s}, []
         | TestingInputIterationsChanged s -> update <| fun m -> {m with testing_run_iterations=s}, []
         | CFRPlayerSelected s -> {model with active_cfr_player=cfr_player_types[s]}, []
         | TestingStartClicked ->
             update <| fun m ->
                 let iter = int m.testing_run_iterations
-                {m with testing_iterations_left=m.testing_iterations_left+iter; testing_results=[]; testing_model=init_player_model model.active_cfr_player},
-                Cmd.bridgeSend(FromClient (MsgClientToServer.Test (iter, m.training_model)))
+                {m with testing_iterations_left=m.testing_iterations_left+iter; testing_results=[]; testing_model=init_player_model model.active_cfr_player}, []
+        | ConnectionClosed(pl, is_train) ->
+            update' pl <| fun m ->
+                if is_train then {m with training_iterations_left=0}, []
+                else {m with testing_iterations_left=0}, []
         | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
             {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
         | FromServer (TrainingResult(a,b)) ->

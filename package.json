@@ -2,11 +2,7 @@
     "private": true,
     "scripts": {
         "start": "vite",
-        "build": "vite build",
-        "proj1": "vite --mode proj1",
-        "proj2": "vite --mode proj2",
-        "html1": "vite --mode html1",
-        "html2": "vite --mode html2"
+        "build": "vite build"
     },
     "devDependencies": {
         "@types/react": "^18.0.27",
@@ -16,6 +12,7 @@
         "vite": "^4.1.0"
     },
     "dependencies": {
+        "@microsoft/signalr": "^7.0.5",
         "bulma": "^0.9.4",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

@@ -1,7 +1,10 @@
 module Server
 
+open System
 open System.Collections.Generic
+open System.Threading.Tasks
 open Elmish
+open Fable.SignalR.Shared
 open Leduc
 open Leduc.Play
 open Microsoft.AspNetCore.Hosting
@@ -41,7 +44,7 @@ module Play =
         | _ -> model, []
 
     let webApp =
-        Bridge.mkServer Shared.Constants.endpoint init update
+        Bridge.mkServer Shared.Constants.socket_endpoint init update
         |> Bridge.run Giraffe.server
 
 module Learn =
@@ -100,9 +103,27 @@ module Learn =
             model, []
         | _ -> model, []
 
-    let webApp =
-        Bridge.mkServer Shared.Constants.endpoint init update
+    let webApp () =
+        Bridge.mkServer Shared.Constants.socket_endpoint init update
         |> Bridge.run Giraffe.server
+
+
+open Fable.SignalR
+module LearnSignalR =
+    let send (msg: MsgServer) (hubContext: FableHub<MsgServer,MsgServerToClient>) : Task = task {
+        let dispatch = hubContext.Clients.Caller.Send >> ignore
+        let model = hubContext.Context.Items["model"] :?> _
+        let model,cmds = Learn.update (dispatch >> ignore) msg model
+        for cmd in cmds do cmd dispatch
+        hubContext.Context.Items["model"] <- model
+    }
+
+    let on_connected (hubContext: FableHub<MsgServer,MsgServerToClient>) = task {
+        let dispatch = hubContext.Clients.Caller.Send >> ignore
+        let init,cmds = Learn.init dispatch ()
+        for cmd in cmds do cmd dispatch
+        hubContext.Context.Items["model"] <- init
+    }
 
 open Argu
 
@@ -127,12 +148,20 @@ let main args =
             use_router Play.webApp
             app_config Giraffe.useWebSockets
             use_static "public"
-            url "http://localhost:5000"
+            url Shared.Constants.Url.play_server
         } |> run
     | Learn ->
         application {
-            use_router Learn.webApp
-            app_config Giraffe.useWebSockets
-            url "http://localhost:5001"
+            // use_router Learn.webApp
+            // app_config Giraffe.useWebSockets
+            use_signalr (
+                configure_signalr {
+                    endpoint Shared.Constants.socket_endpoint
+                    send LearnSignalR.send
+                    invoke (fun _ _ -> raise (NotSupportedException("invoke"))) // Should be a 501 instead of a 500 error.
+                    with_on_connected LearnSignalR.on_connected
+                }
+            )
+            url Shared.Constants.Url.learn_server
         } |> run
     0

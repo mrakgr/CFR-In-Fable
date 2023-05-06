@@ -1,6 +1,8 @@
 source https://api.nuget.org/v3/index.json
 storage: none
 
+git https://github.com/mrakgr/Rebuild.Fable.SignalR.git master Packages: /nupkgs/
+
 nuget argu
 nuget Elmish.Bridge.Client
 nuget Elmish.Bridge.Giraffe
@@ -26,3 +28,5 @@ nuget Fulma
 nuget Fake.Core.Target
 nuget Fake.IO.FileSystem
 nuget Farmer
+nuget Rebuild.Fable.SignalR.Saturn
+nuget Rebuild.Fable.SignalR.Elmish
