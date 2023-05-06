@@ -10,5 +10,8 @@
     <None Include="paket.references" />
     <Compile Include="App.fs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\paket-files\github.com\mrakgr\Rebuild.Fable.SignalR\src\Fable.SignalR\Fable.SignalR.fsproj" />
+  </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
