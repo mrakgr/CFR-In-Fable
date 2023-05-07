@@ -10,7 +10,6 @@ type MsgServerToClient =
     | TrainingModel of CFRPlayerType * CFRPlayerModel
     | TestingResult of float
     | TestingModel of CFRPlayerType * CFRPlayerModel
-    | ConnectionOpen of CFRPlayerType * is_train: bool
 
 type MsgClientToServer =
     | SelectedAction of Action

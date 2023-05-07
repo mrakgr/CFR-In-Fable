@@ -2,6 +2,8 @@ module Server
 
 open System
 open System.Collections.Generic
+open System.Diagnostics
+open System.Threading
 open System.Threading.Tasks
 open Elmish
 open Leduc
@@ -48,12 +50,9 @@ module Play =
         |> Bridge.run Giraffe.server
 
 module Learn =
-    type ServerModel = {
-        player : CFRPlayerType
-        is_train : bool
-    }
+    type ServerModel = unit
 
-    let init _ () : ServerModel * Cmd<_> = (), Cmd.ofMsg
+    let init _ () : ServerModel * Cmd<_> = (), []
     let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
         match msg with
         | FromClient (Train (num_iters, pl)) ->
@@ -113,9 +112,9 @@ module Learn =
 
 open Argu
 
-type ServerType = Play | Learn
+type ServerType = Play | Learn | All
 type Arguments =
-    | [<ExactlyOnce>] Mode of ServerType
+    | [<Unique>] Mode of ServerType
 
     interface IArgParserTemplate with
         member s.Usage =
@@ -128,18 +127,23 @@ let main args =
     printfn "%A" args
     let parser = ArgumentParser.Create<Arguments>()
     let results = parser.Parse(args)
-    match results.GetResult Mode with
-    | Play ->
+    let start_play () =
         application {
             use_router Play.webApp
             app_config Giraffe.useWebSockets
             use_static "public"
             url Shared.Constants.Url.play_server
         } |> run
-    | Learn ->
+    let start_learn () =
         application {
             use_router Learn.webApp
             app_config Giraffe.useWebSockets
             url Shared.Constants.Url.learn_server
         } |> run
+    match results.GetResult(Mode, All) with
+    | Play -> start_play()
+    | Learn -> start_learn()
+    | All ->
+        for f in [start_play; start_learn] do
+            Thread(ThreadStart(f)).Start()
     0

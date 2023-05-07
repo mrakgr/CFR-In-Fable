@@ -22,7 +22,6 @@ type MsgClient =
     | TestingStartClicked
     | TrainingInputIterationsChanged of string
     | TestingInputIterationsChanged of string
-    | ConnectionClosed of pl: CFRPlayerType * is_train: bool
     | FromServer of msg: MsgServerToClient
 
 type ClientModel = {
@@ -100,10 +99,6 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_> =
             update <| fun m ->
                 let iter = int m.testing_run_iterations
                 {m with testing_iterations_left=m.testing_iterations_left+iter; testing_results=[]; testing_model=init_player_model model.active_cfr_player}, []
-        | ConnectionClosed(pl, is_train) ->
-            update' pl <| fun m ->
-                if is_train then {m with training_iterations_left=0}, []
-                else {m with testing_iterations_left=0}, []
         | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
             {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
         | FromServer (TrainingResult(a,b)) ->
