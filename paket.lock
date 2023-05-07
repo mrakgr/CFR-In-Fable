@@ -79,9 +79,6 @@ NUGET
     Fable.Parsimmon (4.1) - restriction: >= net6.0
       Fable.Core (>= 3.0) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.6.2) - restriction: >= netstandard2.0
-    Fable.Promise (3.2) - restriction: >= net7.0
-      Fable.Core (>= 3.7.1) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7.2) - restriction: >= netstandard2.0
     Fable.React (9.3)
       Fable.React.Types (>= 18.3) - restriction: >= netstandard2.0
       Fable.ReactDom.Types (>= 18.2) - restriction: >= netstandard2.0
@@ -196,9 +193,6 @@ NUGET
       FSharp.Core (>= 5.0) - restriction: >= netstandard2.0
     Microsoft.AspNetCore.Authentication.JwtBearer (7.0.5)
       Microsoft.IdentityModel.Protocols.OpenIdConnect (>= 6.15.1) - restriction: >= net7.0
-    Microsoft.AspNetCore.Connections.Abstractions (7.0.5) - restriction: >= net7.0
-      Microsoft.Extensions.Features (>= 7.0.5) - restriction: || (>= net462) (>= netstandard2.0)
-      System.IO.Pipelines (>= 7.0) - restriction: || (>= net462) (>= netstandard2.0)
     Microsoft.AspNetCore.Http.Abstractions (2.2) - restriction: >= net6.0
       Microsoft.AspNetCore.Http.Features (>= 2.2) - restriction: >= netstandard2.0
       System.Text.Encodings.Web (>= 4.5) - restriction: >= netstandard2.0
@@ -210,12 +204,6 @@ NUGET
     Microsoft.AspNetCore.Http.Features (5.0.17) - restriction: >= net6.0
       Microsoft.Extensions.Primitives (>= 5.0.1) - restriction: || (>= net461) (>= netstandard2.0)
       System.IO.Pipelines (>= 5.0.2) - restriction: || (>= net461) (>= netstandard2.0)
-    Microsoft.AspNetCore.SignalR.Common (7.0.5) - restriction: >= net7.0
-      Microsoft.AspNetCore.Connections.Abstractions (>= 7.0.5) - restriction: || (>= net462) (>= netstandard2.0)
-      Microsoft.Extensions.Options (>= 7.0.1) - restriction: || (>= net462) (>= netstandard2.0)
-    Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson (7.0.5) - restriction: >= net7.0
-      Microsoft.AspNetCore.SignalR.Common (>= 7.0.5) - restriction: || (>= net462) (>= netstandard2.0)
-      Newtonsoft.Json (>= 13.0.1) - restriction: || (>= net462) (>= netstandard2.0)
     Microsoft.AspNetCore.WebSockets (2.2.1) - restriction: >= net6.0
       Microsoft.AspNetCore.Http.Extensions (>= 2.2) - restriction: >= netstandard2.0
       Microsoft.Extensions.Logging.Abstractions (>= 2.2) - restriction: >= netstandard2.0
@@ -225,7 +213,6 @@ NUGET
       System.Threading.Tasks.Extensions (>= 4.5.4) - restriction: || (>= net462) (&& (>= netstandard2.0) (< netstandard2.1))
     Microsoft.CSharp (4.7) - restriction: >= net7.0
     Microsoft.Extensions.DependencyInjection.Abstractions (7.0) - restriction: >= net6.0
-    Microsoft.Extensions.Features (7.0.5) - restriction: >= net7.0
     Microsoft.Extensions.FileProviders.Abstractions (7.0) - restriction: >= net6.0
       Microsoft.Extensions.Primitives (>= 7.0) - restriction: || (>= net462) (>= netstandard2.0)
     Microsoft.Extensions.Logging.Abstractions (7.0) - restriction: >= net6.0
@@ -342,29 +329,3 @@ NUGET
       System.Reflection.Emit.Lightweight (>= 4.3) - restriction: || (&& (>= net45) (< netstandard2.0)) (&& (< net45) (>= netstandard2.0)) (>= net47)
       System.Threading.Tasks.Extensions (>= 4.4) - restriction: || (&& (>= net45) (< netstandard2.0)) (&& (< net45) (>= netstandard2.0)) (>= net47)
       System.ValueTuple (>= 4.4) - restriction: || (&& (>= net45) (< netstandard2.0)) (&& (< net45) (>= netstandard2.0)) (>= net47)
-  remote: paket-files/github.com/mrakgr/Rebuild.Fable.SignalR/nupkgs
-    Rebuild.Fable.SignalR (1.0.0) - restriction: >= net7.0
-      Fable.Core (>= 4.0) - restriction: >= net7.0
-      Fable.Promise (>= 3.2) - restriction: >= net7.0
-      Fable.Remoting.MsgPack (>= 1.18) - restriction: >= net7.0
-      Fable.SimpleJson (>= 3.24) - restriction: >= net7.0
-      FSharp.Core (>= 7.0.200) - restriction: >= net7.0
-    Rebuild.Fable.SignalR.AspNetCore (1.0.0) - restriction: >= net7.0
-      Fable.Remoting.Json (>= 2.23) - restriction: >= net7.0
-      Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson (>= 7.0.5) - restriction: >= net7.0
-      Rebuild.Fable.SignalR.Shared (>= 1.0) - restriction: >= net7.0
-    Rebuild.Fable.SignalR.Elmish (1.0.0)
-      Fable.Core (>= 4.0) - restriction: >= net7.0
-      Fable.Elmish (>= 4.0.1) - restriction: >= net7.0
-      Rebuild.Fable.SignalR (>= 1.0) - restriction: >= net7.0
-    Rebuild.Fable.SignalR.Saturn (1.0.0)
-      Rebuild.Fable.SignalR.AspNetCore (>= 1.0) - restriction: >= net7.0
-      Saturn (>= 0.16.1) - restriction: >= net7.0
-    Rebuild.Fable.SignalR.Shared (1.0.0) - restriction: >= net7.0
-      Fable.Remoting.MsgPack (>= 1.18) - restriction: >= net7.0
-      Microsoft.AspNetCore.SignalR.Common (>= 7.0.5) - restriction: >= net7.0
-      Microsoft.IO.RecyclableMemoryStream (>= 2.3.2) - restriction: >= net7.0
-GIT
-  remote: https://github.com/mrakgr/Rebuild.Fable.SignalR.git
-     (96ca7742e46be568bb581cc82cfe33bd953f7f6c)
-      path: /nupkgs/

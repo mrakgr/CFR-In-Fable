@@ -12,33 +12,28 @@ open Elmish.HMR
 
 open Shared.Messages
 open Shared.Constants
-open Fable.SignalR
 
 Program.mkProgram Index.init Index.update Index.view
 |> Program.withSubscription (fun model ->
-    let body msg msg_closed dispatch =
-        let hub = SignalR.connect <| fun hub ->
-            hub.withUrl($"{Url.learn_server}/{socket_endpoint}")
-                .withAutomaticReconnect()
-                .configureLogging(LogLevel.Debug)
-                .onClose(fun ex ->
-                    dispatch msg_closed
-                    )
-                .onMessage (Index.FromServer >> dispatch)
+    let body (msg : MsgServer) msg_closed dispatch =
+        let config =
+            Bridge.endpoint $"{Url.learn_server}/{socket_endpoint}"
+            |> Bridge.withName "learn" // it uses names to find the sockets under the hood
+            |> Bridge.withWhenDown msg_closed
+            |> Bridge.withMapping Index.FromServer
 
-        hub.startNow()
-        hub.sendNow msg
-        {new IDisposable with
-            member _.Dispose() = hub.stopNow()
-            }
+        Bridge.asSubscription config dispatch
+        Bridge.NamedSend("learn",msg) // error
+
+        config :> IDisposable
     [
         for KeyValue(name,pl) in model.cfr_players do
             if pl.training_iterations_left > 0 then
-                let key = [ string name; "train"; string pl.training_iterations_left ]
+                let key = [ string name; "train" ]
                 key, body (FromClient (MsgClientToServer.Train (pl.training_iterations_left, pl.training_model)))
                         (Index.ConnectionClosed(name,true))
             if pl.testing_iterations_left > 0 then
-                let key = [ string name; "test"; string pl.testing_iterations_left ]
+                let key = [ string name; "test" ]
                 key, body (FromClient (MsgClientToServer.Test (pl.testing_iterations_left, pl.testing_model)))
                         (Index.ConnectionClosed(name,false))
     ]
