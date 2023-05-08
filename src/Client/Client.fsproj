@@ -8,13 +8,13 @@
         <None Include="index.html" />
         <None Include="index.css" />
         <None Include="paket.references" />
-        <Compile Include="Bindings.SignalR.fs" />
-        <Compile Include="Bindings.Test.fs" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\Fable.Bindings.SignalR\Fable.Bindings.SignalR.fsproj" />
         <ProjectReference Include="..\Shared\Shared.fsproj" />
     </ItemGroup>
     <ItemGroup>
+      <Compile Include="Test.fs" />
       <Content Include="signalr_tests.js" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />

@@ -1,5 +1,5 @@
 ﻿// ts2fable 0.9.0-build.725
-module rec SignalR
+module rec Fable.Bindings.SignalR
 
 #nowarn "3390" // disable warnings for invalid XML comments
 
@@ -1011,6 +1011,54 @@ type [<AllowNullLiteral>] IExports =
 //     abstract getErrorString: e: obj option -> string
 //     abstract getGlobalThis: unit -> obj
 
-module Constructors =
-    [<ImportAll("@microsoft/signalr")>]
-    let signalr : IExports = jsNative
+[<Fable.Core.ImportAll("@microsoft/signalr")>]
+module Exports =
+    let AbortController: AbortControllerStatic = jsNative
+    let AccessTokenHttpClient: AccessTokenHttpClientStatic = jsNative
+
+    /// <summary>Default implementation of <see cref="@microsoft/signalr.HttpClient" />.</summary>
+    let DefaultHttpClient: DefaultHttpClientStatic = jsNative
+    let DefaultReconnectPolicy: DefaultReconnectPolicyStatic = jsNative
+
+    /// Error thrown when an HTTP request fails.
+    let HttpError: HttpErrorStatic = jsNative
+    /// Error thrown when a timeout elapses.
+    let TimeoutError: TimeoutErrorStatic = jsNative
+    /// Error thrown when an action is aborted.
+    let AbortError: AbortErrorStatic = jsNative
+
+    let UnsupportedTransportError: UnsupportedTransportErrorStatic = jsNative
+    let DisabledTransportError: DisabledTransportErrorStatic = jsNative
+    let FailedToStartTransportError: FailedToStartTransportErrorStatic = jsNative
+    let FailedToNegotiateWithServerError: FailedToNegotiateWithServerErrorStatic = jsNative
+    let AggregateErrors: AggregateErrorsStatic = jsNative
+    let FetchHttpClient: FetchHttpClientStatic = jsNative
+    let HandshakeProtocol: HandshakeProtocolStatic = jsNative
+    let HeaderNames: HeaderNamesStatic = jsNative
+
+    /// Represents an HTTP response.
+    let HttpResponse: HttpResponseStatic = jsNative
+    /// letion over an HTTP client.
+    ///
+    /// This class provides an letion over an HTTP client so that a different implementation can be provided on different platforms.
+    let HttpClient: HttpClientStatic = jsNative
+    let HttpConnection: HttpConnectionStatic = jsNative
+    let TransportSendQueue: TransportSendQueueStatic = jsNative
+
+    /// <summary>A builder for configuring <see cref="@microsoft/signalr.HubConnection" /> instances.</summary>
+    let HubConnectionBuilder: HubConnectionBuilderStatic = jsNative
+
+    /// Implements the JSON Hub Protocol.
+    let JsonHubProtocol: JsonHubProtocolStatic = jsNative
+
+    /// A logger that does nothing when log messages are sent to it.
+    let NullLogger: NullLoggerStatic = jsNative
+    let LongPollingTransport: LongPollingTransportStatic = jsNative
+    let WebSocketConstructor: WebSocketConstructorStatic = jsNative
+    let ServerSentEventsTransport: ServerSentEventsTransportStatic = jsNative
+
+    /// Stream implementation to stream items to the server.
+    let Subject: SubjectStatic = jsNative
+    let TextMessageFormat: TextMessageFormatStatic = jsNative
+    let WebSocketTransport: WebSocketTransportStatic = jsNative
+    let XhrHttpClient: XhrHttpClientStatic = jsNative
