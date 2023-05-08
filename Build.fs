@@ -14,7 +14,8 @@ let deployPath = Path.getFullName "deploy"
 
 Target.create "Clean" (fun q ->
     Shell.cleanDir deployPath
-    run dotnet "fable clean --yes" clientPath // Delete *.fs.js files created by Fable
+    // TODO: Make sure you mention that fable is not cleaning properly in the video.
+    run dotnet "fable clean --yes -o output -e .js" clientPath // Delete *.fs.js files created by Fable
 )
 
 Target.create "InstallClient" (fun _ -> run npm "install" ".")
@@ -42,9 +43,9 @@ Target.create "Azure" (fun _ ->
 )
 
 Target.create "Run" (fun _ ->
-    run dotnet "build" sharedPath
+    // run dotnet "build" sharedPath
     // We'll run them serially if we get a build failure again here.
-    [ "server", dotnet "watch run" serverPath
+    [ //"server", dotnet "watch run" serverPath
       "client", dotnet "fable watch -o output -s --run npm run start" clientPath ]
     |> runParallel
 )

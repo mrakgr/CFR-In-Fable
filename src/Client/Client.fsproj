@@ -8,11 +8,14 @@
         <None Include="index.html" />
         <None Include="index.css" />
         <None Include="paket.references" />
-        <Compile Include="Index.fs" />
-        <Compile Include="App.fs" />
+        <Compile Include="Bindings.SignalR.fs" />
+        <Compile Include="Bindings.Test.fs" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Shared\Shared.fsproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="signalr_tests.js" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

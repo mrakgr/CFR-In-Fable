@@ -20,10 +20,10 @@ export default ({mode}) => {
         },
         server: {
             port: config.PORT,
-            proxy: {
-                "/api": {target, changeOrigin: true},
-                "/socket": {target, ws: true}
-                }
+            // proxy: {
+            //     "/api": {target, changeOrigin: true},
+            //     "/socket": {target, ws: true}
+            //     }
             },
         plugins: [react()],
         define: {
