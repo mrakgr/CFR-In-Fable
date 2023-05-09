@@ -117,9 +117,9 @@ module TestSignalR =
     type TestHub() =
         inherit Hub()
 
-        member this.Hello(x : string) = task {
-            printfn "Got: %s" x
-            do! this.Clients.Caller.SendAsync("response", "I am fine.")
+        member this.Hello(x : obj) = task {
+            printfn "Got: %A" x
+            // do! this.Clients.Caller.SendCoreAsync("response", [|"I am fine."|])
         }
 
 

@@ -176,7 +176,7 @@ type [<AllowNullLiteral>] HandshakeResponseMessage =
 
 type [<AllowNullLiteral>] HandshakeProtocol =
     abstract writeHandshakeRequest: handshakeRequest: HandshakeRequestMessage -> string
-    abstract parseHandshakeResponse: data: obj option -> obj option * HandshakeResponseMessage
+    abstract parseHandshakeResponse: data: obj -> obj * HandshakeResponseMessage
 
 type [<AllowNullLiteral>] HandshakeProtocolStatic =
     [<EmitConstructor>] abstract Create: unit -> HandshakeProtocol
@@ -300,7 +300,7 @@ type [<AllowNullLiteral>] IAvailableTransport =
 
 type [<AllowNullLiteral>] HttpConnection =
     inherit IConnection
-    abstract features: obj option
+    abstract features: obj
     abstract baseUrl: string with get, set
     abstract connectionId: string option with get, set
     abstract onreceive: (U2<string, ArrayBuffer> -> unit) option with get, set
@@ -371,7 +371,7 @@ type [<AllowNullLiteral>] HubConnection =
     /// <param name="methodName">The name of the server method to invoke.</param>
     /// <param name="args">The arguments used to invoke the server method.</param>
     /// <returns>An object that yields results from the server as they are received.</returns>
-    abstract stream: methodName: string * [<ParamArray>] args: obj option[] -> IStreamResult<'T>
+    abstract stream: methodName: string * [<ParamArray>] args: obj[] -> IStreamResult<'T>
     /// <summary>
     /// Invokes a hub method on the server using the specified name and arguments. Does not wait for a response from the receiver.
     ///
@@ -381,7 +381,7 @@ type [<AllowNullLiteral>] HubConnection =
     /// <param name="methodName">The name of the server method to invoke.</param>
     /// <param name="args">The arguments used to invoke the server method.</param>
     /// <returns>A Promise that resolves when the invocation has been successfully sent, or rejects with an error.</returns>
-    abstract send: methodName: string * [<ParamArray>] args: obj option[] -> Promise<unit>
+    abstract send: methodName: string * [<ParamArray>] args: obj[] -> Promise<unit>
     /// <summary>
     /// Invokes a hub method on the server using the specified name and arguments.
     ///
@@ -393,11 +393,11 @@ type [<AllowNullLiteral>] HubConnection =
     /// <param name="methodName">The name of the server method to invoke.</param>
     /// <param name="args">The arguments used to invoke the server method.</param>
     /// <returns>A Promise that resolves with the result of the server method (if any), or rejects with an error.</returns>
-    abstract invoke: methodName: string * [<ParamArray>] args: obj option[] -> Promise<'T>
+    abstract invoke: methodName: string * [<ParamArray>] args: obj[] -> Promise<'T>
     /// <summary>Registers a handler that will be invoked when the hub method with the specified method name is invoked.</summary>
     /// <param name="methodName">The name of the hub method to define.</param>
     /// <param name="newMethod">The handler that will be raised when the hub method is invoked.</param>
-    abstract on: methodName: string * newMethod: (obj [] -> unit) -> unit
+    abstract on: methodName: string * newMethod: (obj [] -> obj) -> unit
     /// <summary>Removes all handlers for the specified hub method.</summary>
     /// <param name="methodName">The name of the method to remove handlers for.</param>
     abstract off: methodName: string -> unit
@@ -409,7 +409,7 @@ type [<AllowNullLiteral>] HubConnection =
     /// </summary>
     /// <param name="methodName">The name of the method to remove handlers for.</param>
     /// <param name="method">The handler to remove. This must be the same Function instance as the one passed to {@link  @microsoft/signalr.HubConnection.on}.</param>
-    abstract off: methodName: string * method: (ResizeArray<obj option> -> unit) -> unit
+    abstract off: methodName: string * method: (ResizeArray<obj> -> unit) -> unit
     /// <summary>Registers a handler that will be invoked when the connection is closed.</summary>
     /// <param name="callback">The handler that will be invoked when the connection is closed. Optionally receives a single argument containing the error that caused the connection to close (if any).</param>
     abstract onclose: callback: ((Error) option -> unit) -> unit
@@ -487,7 +487,7 @@ type [<AllowNullLiteral>] HubConnectionBuilderStatic =
     [<EmitConstructor>] abstract Create: unit -> HubConnectionBuilder
 
 type [<AllowNullLiteral>] IConnection =
-    abstract features: obj option
+    abstract features: obj
     abstract connectionId: string option
     abstract baseUrl: string with get, set
     abstract start: transferFormat: TransferFormat -> Promise<unit>
@@ -588,7 +588,7 @@ type [<AllowNullLiteral>] InvocationMessage =
     /// The target method name.
     abstract target: string
     /// The target method arguments.
-    abstract arguments: ResizeArray<obj option>
+    abstract arguments: ResizeArray<obj>
     /// The target methods stream IDs.
     abstract streamIds: ResizeArray<string> option
 
@@ -602,7 +602,7 @@ type [<AllowNullLiteral>] StreamInvocationMessage =
     /// The target method name.
     abstract target: string
     /// The target method arguments.
-    abstract arguments: ResizeArray<obj option>
+    abstract arguments: ResizeArray<obj>
     /// The target methods stream IDs.
     abstract streamIds: ResizeArray<string> option
 
@@ -614,7 +614,7 @@ type [<AllowNullLiteral>] StreamItemMessage =
     /// The invocation ID.
     abstract invocationId: string
     /// The item produced by the server.
-    abstract item: obj option
+    abstract item: obj
 
 /// A hub message representing the result of an invocation.
 type [<AllowNullLiteral>] CompletionMessage =
@@ -634,7 +634,7 @@ type [<AllowNullLiteral>] CompletionMessage =
     ///
     /// Either <see cref="@microsoft/signalr.CompletionMessage.error" /> or <see cref="@microsoft/signalr.CompletionMessage.result" /> must be defined, but not both.
     /// </summary>
-    abstract result: obj option
+    abstract result: obj
 
 /// A hub message indicating that the sender is still active.
 type [<AllowNullLiteral>] PingMessage =
@@ -755,7 +755,7 @@ type [<RequireQualifiedAccess>] TransferFormat =
 /// An abstraction over the behavior of transports. This is designed to support the framework and not intended for use by applications.
 type [<AllowNullLiteral>] ITransport =
     abstract connect: url: string * transferFormat: TransferFormat -> Promise<unit>
-    abstract send: data: obj option -> Promise<unit>
+    abstract send: data: obj -> Promise<unit>
     abstract stop: unit -> Promise<unit>
     abstract onreceive: (U2<string, ArrayBuffer> -> unit) option with get, set
     abstract onclose: ((Error) option -> unit) option with get, set
@@ -799,7 +799,7 @@ type [<AllowNullLiteral>] LongPollingTransport =
     abstract onclose: ((Error) option -> unit) option with get, set
     abstract pollAborted: bool
     abstract connect: url: string * transferFormat: TransferFormat -> Promise<unit>
-    abstract send: data: obj option -> Promise<unit>
+    abstract send: data: obj -> Promise<unit>
     abstract stop: unit -> Promise<unit>
 
 type [<AllowNullLiteral>] LongPollingTransportStatic =
@@ -822,7 +822,7 @@ type [<AllowNullLiteral>] ServerSentEventsTransport =
     abstract onreceive: (U2<string, ArrayBuffer> -> unit) option with get, set
     abstract onclose: ((Error) option -> unit) option with get, set
     abstract connect: url: string * transferFormat: TransferFormat -> Promise<unit>
-    abstract send: data: obj option -> Promise<unit>
+    abstract send: data: obj -> Promise<unit>
     abstract stop: unit -> Promise<unit>
 
 type [<AllowNullLiteral>] ServerSentEventsTransportStatic =
@@ -840,7 +840,7 @@ type [<AllowNullLiteral>] IStreamSubscriber<'T> =
     ///
     /// After this method is called, no additional methods on the <see cref="@microsoft/signalr.IStreamSubscriber" /> will be called.
     /// </summary>
-    abstract error: err: obj option -> unit
+    abstract error: err: obj -> unit
     /// <summary>
     /// Called by the framework when the end of the stream is reached.
     ///
@@ -866,7 +866,7 @@ type [<AllowNullLiteral>] ISubscription<'T> =
 type [<AllowNullLiteral>] Subject<'T> =
     inherit IStreamResult<'T>
     abstract next: item: 'T -> unit
-    abstract error: err: obj option -> unit
+    abstract error: err: obj -> unit
     abstract complete: unit -> unit
     /// <summary>Attaches a <see cref="@microsoft/signalr.IStreamSubscriber" />, which will be invoked when new items are available from the stream.</summary>
     abstract subscribe: observer: IStreamSubscriber<'T> -> ISubscription<'T>
@@ -890,9 +890,9 @@ type [<AllowNullLiteral>] Arg =
 
 type [<AllowNullLiteral>] ArgStatic =
     [<EmitConstructor>] abstract Create: unit -> Arg
-    abstract isRequired: ``val``: obj option * name: string -> unit
+    abstract isRequired: ``val``: obj * name: string -> unit
     abstract isNotEmpty: ``val``: string * name: string -> unit
-    abstract isIn: ``val``: obj option * values: obj option * name: string -> unit
+    abstract isIn: ``val``: obj * values: obj * name: string -> unit
 
 type [<AllowNullLiteral>] Platform =
     interface end
@@ -914,7 +914,7 @@ type [<AllowNullLiteral>] SubjectSubscriptionStatic =
 
 type [<AllowNullLiteral>] ConsoleLogger =
     inherit ILogger
-    abstract out: {| error: obj option -> unit; warn: obj option -> unit; info: obj option -> unit; log: obj option -> unit |} with get, set
+    abstract out: {| error: obj -> unit; warn: obj -> unit; info: obj -> unit; log: obj -> unit |} with get, set
     /// Called by the framework to emit a diagnostic message.
     abstract log: logLevel: LogLevel * message: string -> unit
 
@@ -926,7 +926,7 @@ type [<AllowNullLiteral>] WebSocketTransport =
     abstract onreceive: (U2<string, ArrayBuffer> -> unit) option with get, set
     abstract onclose: ((Error) option -> unit) option with get, set
     abstract connect: url: string * transferFormat: TransferFormat -> Promise<unit>
-    abstract send: data: obj option -> Promise<unit>
+    abstract send: data: obj -> Promise<unit>
     abstract stop: unit -> Promise<unit>
 
 type [<AllowNullLiteral>] WebSocketTransportStatic =
@@ -999,16 +999,16 @@ type [<AllowNullLiteral>] IExports =
 //     abstract VERSION: string
 //     abstract Arg: ArgStatic
 //     abstract Platform: PlatformStatic
-//     abstract getDataDetail: data: obj option * includeContent: bool -> string
+//     abstract getDataDetail: data: obj * includeContent: bool -> string
 //     abstract formatArrayBuffer: data: ArrayBuffer -> string
-//     abstract isArrayBuffer: ``val``: obj option -> bool
+//     abstract isArrayBuffer: ``val``: obj -> bool
 //     abstract sendMessage: logger: ILogger * transportName: string * httpClient: HttpClient * url: string * content: U2<string, ArrayBuffer> * options: IHttpConnectionOptions -> Promise<unit>
 //     abstract createLogger: ?logger: U2<ILogger, LogLevel> -> ILogger
 //     abstract SubjectSubscription: SubjectSubscriptionStatic
 //     abstract ConsoleLogger: ConsoleLoggerStatic
 //     abstract getUserAgentHeader: unit -> string * string
 //     abstract constructUserAgent: version: string * os: string * runtime: string * runtimeVersion: string option -> string
-//     abstract getErrorString: e: obj option -> string
+//     abstract getErrorString: e: obj -> string
 //     abstract getGlobalThis: unit -> obj
 
 [<Fable.Core.ImportAll("@microsoft/signalr")>]

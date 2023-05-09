@@ -10,13 +10,13 @@ let hub =
         .withAutomaticReconnect()
         .build()
 
-hub.on("response", fun x ->
-    printfn "%A" x
-    None
-    )
+// hub.on("response", fun x ->
+//     printfn "%A" x
+//     ()
+//     )
 
 promise {
     do! hub.start()
-    do! hub.send("Hello", [|unbox "How are you today?"|])
+    do! hub.send("Hello", [|"How are you today?"|])
 } |> Promise.start
 
