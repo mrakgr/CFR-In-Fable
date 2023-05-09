@@ -5,6 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="paket.references" />
     <Compile Include="SignalR.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />

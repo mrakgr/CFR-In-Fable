@@ -8,7 +8,9 @@ open System.Threading.Tasks
 open Elmish
 open Leduc
 open Leduc.Play
+open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.DependencyInjection
 open Saturn
 open Elmish.Bridge
 open Shared.Leduc.Types
@@ -109,10 +111,24 @@ module Learn =
         Bridge.mkServer Shared.Constants.socket_endpoint init update
         |> Bridge.run Giraffe.server
 
+module TestSignalR =
+    open Microsoft.AspNetCore.SignalR
+
+    type TestHub() =
+        inherit Hub()
+
+        member this.Hello(x : string) = task {
+            printfn "Got: %s" x
+            do! this.Clients.Caller.SendAsync("response", "I am fine.")
+        }
+
+
+    ()
+
 
 open Argu
 
-type ServerType = Play | Learn | All
+type ServerType = Play | Learn | All | TestSignalR
 type Arguments =
     | [<Unique>] Mode of ServerType
 
@@ -123,7 +139,7 @@ type Arguments =
 
 [<EntryPoint>]
 let main args =
-    printfn "Name: %s; PID: %i" (System.Diagnostics.Process.GetCurrentProcess().ProcessName) (System.Diagnostics.Process.GetCurrentProcess().Id)
+    printfn "Name: %s; PID: %i" (Process.GetCurrentProcess().ProcessName) (System.Diagnostics.Process.GetCurrentProcess().Id)
     printfn "%A" args
     let parser = ArgumentParser.Create<Arguments>()
     let results = parser.Parse(args)
@@ -146,4 +162,14 @@ let main args =
     | All ->
         for f in [start_play; start_learn] do
             Thread(ThreadStart(f)).Start()
+    | TestSignalR -> // I've configured the dotnet run to start this mode for this video.
+        let builder = WebApplication.CreateBuilder(args)
+        builder.Services.AddSignalR() |> ignore
+        builder.WebHost.UseUrls [|Shared.Constants.Url.play_server|] |> ignore
+        let app = builder.Build()
+        app.UseFileServer() |> ignore
+        app.MapHub<TestSignalR.TestHub>("socket/test") |> ignore
+        app.Run()
+
+
     0

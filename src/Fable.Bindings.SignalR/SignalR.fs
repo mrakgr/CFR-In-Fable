@@ -397,7 +397,7 @@ type [<AllowNullLiteral>] HubConnection =
     /// <summary>Registers a handler that will be invoked when the hub method with the specified method name is invoked.</summary>
     /// <param name="methodName">The name of the hub method to define.</param>
     /// <param name="newMethod">The handler that will be raised when the hub method is invoked.</param>
-    abstract on: methodName: string * newMethod: (ResizeArray<obj option> -> obj option) -> unit
+    abstract on: methodName: string * newMethod: (obj [] -> unit) -> unit
     /// <summary>Removes all handlers for the specified hub method.</summary>
     /// <param name="methodName">The name of the method to remove handlers for.</param>
     abstract off: methodName: string -> unit

@@ -4,6 +4,7 @@ storage: none
 nuget argu
 nuget Elmish.Bridge.Client
 nuget Elmish.Bridge.Giraffe
+nuget Fable.Promise
 nuget Feliz.Recharts
 nuget Fsharp.Core
 nuget Fable.Remoting.Giraffe
