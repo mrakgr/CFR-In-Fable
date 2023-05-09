@@ -397,7 +397,7 @@ type [<AllowNullLiteral>] HubConnection =
     /// <summary>Registers a handler that will be invoked when the hub method with the specified method name is invoked.</summary>
     /// <param name="methodName">The name of the hub method to define.</param>
     /// <param name="newMethod">The handler that will be raised when the hub method is invoked.</param>
-    abstract on: methodName: string * newMethod: (obj [] -> obj) -> unit
+    abstract on<'a,'b> : methodName: string * newMethod: ('a -> 'b) -> unit
     /// <summary>Removes all handlers for the specified hub method.</summary>
     /// <param name="methodName">The name of the method to remove handlers for.</param>
     abstract off: methodName: string -> unit
@@ -409,7 +409,7 @@ type [<AllowNullLiteral>] HubConnection =
     /// </summary>
     /// <param name="methodName">The name of the method to remove handlers for.</param>
     /// <param name="method">The handler to remove. This must be the same Function instance as the one passed to {@link  @microsoft/signalr.HubConnection.on}.</param>
-    abstract off: methodName: string * method: (ResizeArray<obj> -> unit) -> unit
+    abstract off<'a,'b> : methodName: string * method: ('a -> 'b) -> unit
     /// <summary>Registers a handler that will be invoked when the connection is closed.</summary>
     /// <param name="callback">The handler that will be invoked when the connection is closed. Optionally receives a single argument containing the error that caused the connection to close (if any).</param>
     abstract onclose: callback: ((Error) option -> unit) -> unit

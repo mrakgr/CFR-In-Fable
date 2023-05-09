@@ -3,6 +3,7 @@ module Server
 open System
 open System.Collections.Generic
 open System.Diagnostics
+open System.IO
 open System.Threading
 open System.Threading.Tasks
 open Elmish
@@ -17,6 +18,7 @@ open Shared.Leduc.Types
 open Shared.Leduc.Types.UI
 open Shared.Messages
 open Shared.Utils
+open Thoth.Json.Net
 
 module Play =
     type ServerModel = {
@@ -113,18 +115,20 @@ module Learn =
 
 module TestSignalR =
     open Microsoft.AspNetCore.SignalR
+    open Fable.Remoting
+
+    type W = Qwe of float | Asd of bool
+    type R = {x : string; y : W}
+
+    open Thoth.Json
 
     type TestHub() =
         inherit Hub()
 
-        member this.Hello(x : obj) = task {
-            printfn "Got: %A" x
-            // do! this.Clients.Caller.SendCoreAsync("response", [|"I am fine."|])
+        member this.Hello(q : string) = task {
+            printfn "Got: %A" (Decode.Auto.fromString<R> q)
+            do! this.Clients.Caller.SendCoreAsync("response", [| Encode.Auto.toString {x="I am fine."; y=Asd true} |])
         }
-
-
-    ()
-
 
 open Argu
 

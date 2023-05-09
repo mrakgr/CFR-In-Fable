@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="vite.config.js" />
+    <Content Include="paket.references" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Build.fs" />
   </ItemGroup>
