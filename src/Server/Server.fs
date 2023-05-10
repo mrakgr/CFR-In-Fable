@@ -127,7 +127,7 @@ module TestSignalR =
 
         member this.Hello(q : string) = task {
             printfn "Got: %A" (Decode.Auto.fromString<R> q)
-            do! this.Clients.Caller.SendCoreAsync("response", [| Encode.Auto.toString {x="I am fine."; y=Asd true} |])
+            do! this.Clients.Caller.SendAsync("response", Encode.Auto.toString {x="I am fine."; y=Asd true})
         }
 
 open Argu

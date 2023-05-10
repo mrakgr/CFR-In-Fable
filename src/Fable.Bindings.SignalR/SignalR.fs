@@ -381,7 +381,7 @@ type [<AllowNullLiteral>] HubConnection =
     /// <param name="methodName">The name of the server method to invoke.</param>
     /// <param name="args">The arguments used to invoke the server method.</param>
     /// <returns>A Promise that resolves when the invocation has been successfully sent, or rejects with an error.</returns>
-    abstract send: methodName: string * [<ParamArray>] args: obj[] -> Promise<unit>
+    abstract send: methodName: string * args: obj -> Promise<unit>
     /// <summary>
     /// Invokes a hub method on the server using the specified name and arguments.
     ///
@@ -393,7 +393,7 @@ type [<AllowNullLiteral>] HubConnection =
     /// <param name="methodName">The name of the server method to invoke.</param>
     /// <param name="args">The arguments used to invoke the server method.</param>
     /// <returns>A Promise that resolves with the result of the server method (if any), or rejects with an error.</returns>
-    abstract invoke: methodName: string * [<ParamArray>] args: obj[] -> Promise<'T>
+    abstract invoke: methodName: string * args: obj -> Promise<'T>
     /// <summary>Registers a handler that will be invoked when the hub method with the specified method name is invoked.</summary>
     /// <param name="methodName">The name of the hub method to define.</param>
     /// <param name="newMethod">The handler that will be raised when the hub method is invoked.</param>
@@ -940,77 +940,6 @@ type [<AllowNullLiteral>] XhrHttpClient =
 type [<AllowNullLiteral>] XhrHttpClientStatic =
     [<EmitConstructor>] abstract Create: logger: ILogger -> XhrHttpClient
 
-type [<AllowNullLiteral>] IExports =
-    abstract AbortController: AbortControllerStatic
-    abstract AccessTokenHttpClient: AccessTokenHttpClientStatic
-
-    /// <summary>Default implementation of <see cref="@microsoft/signalr.HttpClient" />.</summary>
-    abstract DefaultHttpClient: DefaultHttpClientStatic
-    abstract DefaultReconnectPolicy: DefaultReconnectPolicyStatic
-
-    /// Error thrown when an HTTP request fails.
-    abstract HttpError: HttpErrorStatic
-    /// Error thrown when a timeout elapses.
-    abstract TimeoutError: TimeoutErrorStatic
-    /// Error thrown when an action is aborted.
-    abstract AbortError: AbortErrorStatic
-
-    abstract UnsupportedTransportError: UnsupportedTransportErrorStatic
-    abstract DisabledTransportError: DisabledTransportErrorStatic
-    abstract FailedToStartTransportError: FailedToStartTransportErrorStatic
-    abstract FailedToNegotiateWithServerError: FailedToNegotiateWithServerErrorStatic
-    abstract AggregateErrors: AggregateErrorsStatic
-    abstract FetchHttpClient: FetchHttpClientStatic
-    abstract HandshakeProtocol: HandshakeProtocolStatic
-    abstract HeaderNames: HeaderNamesStatic
-
-    /// Represents an HTTP response.
-    abstract HttpResponse: HttpResponseStatic
-    /// Abstraction over an HTTP client.
-    ///
-    /// This class provides an abstraction over an HTTP client so that a different implementation can be provided on different platforms.
-    abstract HttpClient: HttpClientStatic
-    abstract HttpConnection: HttpConnectionStatic
-    abstract TransportSendQueue: TransportSendQueueStatic
-
-    /// <summary>A builder for configuring <see cref="@microsoft/signalr.HubConnection" /> instances.</summary>
-    abstract HubConnectionBuilder: HubConnectionBuilderStatic
-
-    /// Implements the JSON Hub Protocol.
-    abstract JsonHubProtocol: JsonHubProtocolStatic
-
-    /// A logger that does nothing when log messages are sent to it.
-    abstract NullLogger: NullLoggerStatic
-    abstract LongPollingTransport: LongPollingTransportStatic
-    abstract WebSocketConstructor: WebSocketConstructorStatic
-    abstract ServerSentEventsTransport: ServerSentEventsTransportStatic
-
-    /// Stream implementation to stream items to the server.
-    abstract Subject: SubjectStatic
-    abstract TextMessageFormat: TextMessageFormatStatic
-    abstract WebSocketTransport: WebSocketTransportStatic
-    abstract XhrHttpClient: XhrHttpClientStatic
-
-// This is from the Utils.d.ts
-// I wasn't sure what to do with it.
-
-// type [<AllowNullLiteral>] IExports =
-//     /// The version of the SignalR client.
-//     abstract VERSION: string
-//     abstract Arg: ArgStatic
-//     abstract Platform: PlatformStatic
-//     abstract getDataDetail: data: obj * includeContent: bool -> string
-//     abstract formatArrayBuffer: data: ArrayBuffer -> string
-//     abstract isArrayBuffer: ``val``: obj -> bool
-//     abstract sendMessage: logger: ILogger * transportName: string * httpClient: HttpClient * url: string * content: U2<string, ArrayBuffer> * options: IHttpConnectionOptions -> Promise<unit>
-//     abstract createLogger: ?logger: U2<ILogger, LogLevel> -> ILogger
-//     abstract SubjectSubscription: SubjectSubscriptionStatic
-//     abstract ConsoleLogger: ConsoleLoggerStatic
-//     abstract getUserAgentHeader: unit -> string * string
-//     abstract constructUserAgent: version: string * os: string * runtime: string * runtimeVersion: string option -> string
-//     abstract getErrorString: e: obj -> string
-//     abstract getGlobalThis: unit -> obj
-
 [<Fable.Core.ImportAll("@microsoft/signalr")>]
 module Exports =
     let AbortController: AbortControllerStatic = jsNative
@@ -1062,3 +991,21 @@ module Exports =
     let TextMessageFormat: TextMessageFormatStatic = jsNative
     let WebSocketTransport: WebSocketTransportStatic = jsNative
     let XhrHttpClient: XhrHttpClientStatic = jsNative
+
+    [<Fable.Core.ImportAll("@microsoft/signalr")>]
+    module Utils =
+        /// The version of the SignalR client.
+        let VERSION: string = jsNative
+        let Arg: ArgStatic = jsNative
+        let Platform: PlatformStatic = jsNative
+        let getDataDetail: data: obj * includeContent: bool -> string = jsNative
+        let formatArrayBuffer: data: ArrayBuffer -> string = jsNative
+        let isArrayBuffer: ``val``: obj -> bool = jsNative
+        let sendMessage: logger: ILogger * transportName: string * httpClient: HttpClient * url: string * content: U2<string, ArrayBuffer> * options: IHttpConnectionOptions -> Promise<unit> = jsNative
+        let createLogger: ?logger: U2<ILogger, LogLevel> -> ILogger = jsNative
+        let SubjectSubscription: SubjectSubscriptionStatic = jsNative
+        let ConsoleLogger: ConsoleLoggerStatic = jsNative
+        let getUserAgentHeader: unit -> string * string = jsNative
+        let constructUserAgent: version: string * os: string * runtime: string * runtimeVersion: string option -> string = jsNative
+        let getErrorString: e: obj -> string = jsNative
+        let getGlobalThis: unit -> obj = jsNative
