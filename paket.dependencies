@@ -8,6 +8,7 @@ nuget Fable.Promise
 nuget Feliz.Recharts
 nuget Fsharp.Core
 nuget Fable.Remoting.Giraffe
+nuget Microsoft.AspNetCore.SignalR.Protocols.MessagePack
 nuget Saturn
 nuget Microsoft.AspNetCore.Authentication.JwtBearer
 nuget Expecto

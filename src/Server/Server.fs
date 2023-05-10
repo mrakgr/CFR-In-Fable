@@ -121,14 +121,20 @@ module TestSignalR =
     type R = {x : string; y : W}
 
     open Thoth.Json
+    open Shared.Utils
 
     type TestHub() =
         inherit Hub()
 
-        member this.Hello(q : string) = task {
-            printfn "Got: %A" (Decode.Auto.fromString<R> q)
-            do! this.Clients.Caller.SendAsync("response", Encode.Auto.toString {x="I am fine."; y=Asd true})
+        member this.Hello(q : obj) = task {
+            printfn "Got: %A" (Serialization.deserialize<R> q)
+            do! this.Clients.Caller.SendAsync("response", Serialization.serialize {x="I am fine."; y=Asd true})
         }
+
+        // member this.Hello(q : string) = task {
+        //     printfn "Got: %A" (Decode.Auto.fromString<R> q)
+        //     do! this.Clients.Caller.SendAsync("response", Encode.Auto.toString {x="I am fine."; y=Asd true})
+        // }
 
 open Argu
 
@@ -168,7 +174,11 @@ let main args =
             Thread(ThreadStart(f)).Start()
     | TestSignalR -> // I've configured the dotnet run to start this mode for this video.
         let builder = WebApplication.CreateBuilder(args)
-        builder.Services.AddSignalR() |> ignore
+        builder.Services
+            .AddSignalR()
+            .AddMessagePackProtocol()
+
+        |> ignore
         builder.WebHost.UseUrls [|Shared.Constants.Url.play_server|] |> ignore
         let app = builder.Build()
         app.UseFileServer() |> ignore
