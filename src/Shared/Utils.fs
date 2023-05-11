@@ -77,8 +77,7 @@ module Utils =
                         ar[i] <- deserialize' t x[i]
                     ar
                 #if FABLE_COMPILER
-                if is_serializable t' then
-                    body()
+                if is_serializable t' then body() else x
                 #else
                 body()
                 #endif

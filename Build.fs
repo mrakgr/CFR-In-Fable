@@ -14,8 +14,7 @@ let deployPath = Path.getFullName "deploy"
 
 Target.create "Clean" (fun q ->
     Shell.cleanDir deployPath
-    // TODO: Make sure you mention that fable is not cleaning properly in the video.
-    run dotnet "fable clean --yes -o output -e .js" clientPath // Delete *.fs.js files created by Fable
+    run dotnet "fable clean --yes -o output -e .js" clientPath // Delete *.js files created by Fable
 )
 
 Target.create "InstallClient" (fun _ -> run npm "install" ".")
