@@ -22,6 +22,7 @@ type MsgClient =
     | TestingStartClicked
     | TrainingInputIterationsChanged of string
     | TestingInputIterationsChanged of string
+    | LearnConnectionClosed
     | FromServer of msg: MsgServerToClient
 
 type ClientModel = {
@@ -55,17 +56,17 @@ let init () : ClientModel * Cmd<_> =
                         training_model = model
                         testing_model = model
                         training_iterations = 0
-                        training_iterations_left = 0
+                        training_iterations_left = 0u
                         training_results = []
                         training_run_iterations = "50"
-                        testing_iterations_left = 0
+                        testing_iterations_left = 0u
                         testing_results = []
                         testing_run_iterations = "100"
                         }
             ] |> Map
     }, []
 
-let update msg (model : ClientModel) : ClientModel * Cmd<_> =
+let update dispatch_learn msg (model : ClientModel) : ClientModel * Cmd<_> =
     try
         let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
             let m,cmd = f model.cfr_players[active_cfr_player]
@@ -78,7 +79,7 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_> =
                 | Human -> PLM_Human
                 | Random -> PLM_Random
                 | CFR x -> PLM_CFR model.cfr_players[x].training_model
-            model, Cmd.bridgeSend(FromClient (MsgClientToServer.StartGame(get_model model.p0, get_model model.p1)))
+            model, Cmd.bridgeSend(FromClient (MsgClientToPlayServer.StartGame(get_model model.p0, get_model model.p1)))
         | PlayerChange(id, pl) ->
             let model =
                 match id with
@@ -90,28 +91,33 @@ let update msg (model : ClientModel) : ClientModel * Cmd<_> =
             {model with active_tab=tab}, []
         | TrainingStartClicked ->
             update <| fun m ->
-                let iter = int m.training_run_iterations
+                let iter = uint m.training_run_iterations
+                dispatch_learn (MsgClientToLearnServer.Train (iter, m.training_model))
                 {m with training_iterations_left=m.training_iterations_left + iter}, []
+        | TestingStartClicked ->
+            update <| fun m ->
+                let iter = uint m.testing_run_iterations
+                dispatch_learn (MsgClientToLearnServer.Test (iter, m.training_model))
+                {m with testing_iterations_left=m.testing_iterations_left+iter; testing_results=[]; testing_model=init_player_model model.active_cfr_player}, []
         | TrainingInputIterationsChanged s -> update <| fun m -> {m with training_run_iterations = s}, []
         | TestingInputIterationsChanged s -> update <| fun m -> {m with testing_run_iterations=s}, []
         | CFRPlayerSelected s -> {model with active_cfr_player=cfr_player_types[s]}, []
-        | TestingStartClicked ->
-            update <| fun m ->
-                let iter = int m.testing_run_iterations
-                {m with testing_iterations_left=m.testing_iterations_left+iter; testing_results=[]; testing_model=init_player_model model.active_cfr_player}, []
+        | LearnConnectionClosed ->
+            let f m = {m with testing_iterations_left=0u; training_iterations_left=0u}
+            {model with cfr_players=Map.map (fun _ -> f) model.cfr_players}, []
         | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
             {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
         | FromServer (TrainingResult(a,b)) ->
             update <| fun m ->
                 let mutable i = 150
                 let x = (m.training_iterations,(a,b)) :: m.training_results |> List.takeWhile (fun _ -> if i > 0 then i <- i-1; true else false)
-                {m with training_results=x; training_iterations_left=m.training_iterations_left-1; training_iterations=m.training_iterations+1}, []
+                {m with training_results=x; training_iterations_left=m.training_iterations_left-1u; training_iterations=m.training_iterations+1}, []
         | FromServer (TrainingModel (a,x)) ->
             update' a <| fun m ->
                 {m with training_model=x}, []
         | FromServer (TestingResult x) ->
             update <| fun m ->
-                {m with testing_results=x :: m.testing_results; testing_iterations_left=m.testing_iterations_left-1}, []
+                {m with testing_results=x :: m.testing_results; testing_iterations_left=m.testing_iterations_left-1u}, []
         | FromServer (TestingModel (a,x)) ->
             update' a <| fun m ->
                 {m with testing_model=x}, []
@@ -372,7 +378,7 @@ module View =
         [<ReactComponent>]
         let view (data : float list) = chart_template lines None data
 
-    [<ReactComponent>]
+    [<ReactMemoComponent>]
     let table is_train (model : CFRPlayerModel) =
         let model =
             match model with
@@ -430,14 +436,14 @@ module View =
         ]
 
     [<ReactComponent>]
-    let training_ui_menu (cfr_select_value : string, training_run_iterations : string, training_iterations_left : int, msg) (select_on_change : string -> _) start (iters_changed : string -> _) =
+    let training_ui_menu (cfr_select_value : string, training_run_iterations : string, training_iterations_left : uint, msg) (select_on_change : string -> _) start (iters_changed : string -> _) =
         Html.div [
             prop.className "train-ui-menu"
             prop.children [
-                let is_input_valid, _ = Int32.TryParse(training_run_iterations)
+                let is_input_valid, _ = UInt32.TryParse(training_run_iterations)
                 Html.button [
                     prop.className "train-start-button"
-                    if 0 < training_iterations_left then
+                    if 0u < training_iterations_left then
                         prop.text $"%s{msg} In Progress: %i{training_iterations_left} left..."
                     else
                         prop.text $"Click To Begin %s{msg}"

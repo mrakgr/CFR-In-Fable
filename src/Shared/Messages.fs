@@ -11,13 +11,14 @@ type MsgServerToClient =
     | TestingResult of float
     | TestingModel of CFRPlayerType * CFRPlayerModel
 
-type MsgClientToServer =
+type MsgClientToPlayServer =
     | SelectedAction of Action
     | StartGame of p0: PlayerModel * p1: PlayerModel
-    | Train of num_iter: int * pl: CFRPlayerModel
-    | Test of num_iter: int * pl: CFRPlayerModel
 
-type MsgServer =
+type MsgClientToLearnServer =
+    | Train of num_iter: uint * pl: CFRPlayerModel
+    | Test of num_iter: uint * pl: CFRPlayerModel
+
+type MsgPlayServer =
     | FromLeducGame of MsgLeduc
-    | FromClient of MsgClientToServer
-
+    | FromClient of MsgClientToPlayServer

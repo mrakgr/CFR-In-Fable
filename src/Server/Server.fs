@@ -3,14 +3,13 @@ module Server
 open System
 open System.Collections.Generic
 open System.Diagnostics
-open System.IO
 open System.Threading
-open System.Threading.Tasks
 open Elmish
 open Leduc
 open Leduc.Play
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Saturn
 open Elmish.Bridge
@@ -41,14 +40,12 @@ module Play =
             model, Cmd.ofEffect (fun dispatch ->
                 let dispatch = FromLeducGame >> dispatch
                 let f = function
-                    | UI.PLM_Human -> LeducActionHuman dispatch :> ILeducAction
-                    | UI.PLM_Random -> LeducActionRandom()
-                    | UI.PLM_CFR (UI.ModelEnum x)
-                    | UI.PLM_CFR (UI.ModelMC(x,_)) -> LeducActionCFR(Dictionary x)
+                    | PLM_Human -> LeducActionHuman dispatch :> ILeducAction
+                    | PLM_Random -> LeducActionRandom()
+                    | PLM_CFR (ModelEnum x)
+                    | PLM_CFR (ModelMC(x,_)) -> LeducActionCFR(Dictionary x)
                 game dispatch (f p0,f p1)
                 )
-        | _ -> model, []
-
     let webApp =
         Bridge.mkServer Shared.Constants.socket_endpoint init update
         |> Bridge.run Giraffe.server
@@ -57,19 +54,21 @@ module Learn =
     type ServerModel = unit
 
     let init _ () : ServerModel * Cmd<_> = (), []
-    let update dispact_client msg (model : ServerModel) : ServerModel * Cmd<_> =
+    let update dispatch_client msg (model : ServerModel) : ServerModel * Cmd<_> =
         match msg with
-        | FromClient (Train (num_iters, pl)) ->
-            let inline train_template f =
+        | Train (num_iters, pl) ->
+            let train_template f =
                 try
-                    for i=1 to num_iters do
-                        f() |> TrainingResult |> dispact_client
+                    let mutable num_iters = num_iters
+                    while num_iters > 0u do // TODO: Don't forget the cancellation token.
+                        f() |> TrainingResult |> dispatch_client
+                        num_iters <- num_iters-1u
                 with e ->
                     printfn $"%A{e}"
             let train_enum (d : Map<_,_>) =
                 let d = Dictionary d
                 train_template (fun () -> Learn.train_enum d)
-                UI.Enum, UI.ModelEnum (to_map d)
+                Enum, ModelEnum (to_map d)
             let train_mc (d : Map<_,_>,d' : Map<_,_>) =
                 let d = Dictionary d
                 let d' = Dictionary d'
@@ -81,64 +80,67 @@ module Learn =
                         r <- f (+) r (Learn.train_mc d d')
                     f (/) r (float iters, float iters)
                     )
-                UI.MC, UI.ModelMC (to_map d, to_map d')
+                MC, ModelMC (to_map d, to_map d')
             match pl with
-            | UI.ModelEnum x -> train_enum x
-            | UI.ModelMC(a,b) -> train_mc (a, b)
-            |> TrainingModel |> dispact_client
+            | ModelEnum x -> train_enum x
+            | ModelMC(a,b) -> train_mc (a, b)
+            |> TrainingModel |> dispatch_client
             model, []
-        | FromClient (Test (num_iters, pl)) ->
+        | Test (num_iters, pl) ->
             try
                 let test_template d =
-                    for i=1 to num_iters do
-                        Learn.test d |> TestingResult |> dispact_client
+                    let mutable num_iters = num_iters
+                    while num_iters > 0u do // TODO: Don't forget the cancellation token.
+                        Learn.test d |> TestingResult |> dispatch_client
+                        num_iters <- num_iters-1u
                 let test_enum (d : Map<_,_>) =
                     let d = Dictionary d
                     test_template d
-                    UI.Enum, UI.ModelEnum (to_map d)
+                    Enum, ModelEnum (to_map d)
                 let test_mc (d : Map<_,_>,d' : Map<_,_>) =
                     let d = Dictionary d
                     test_template d
-                    UI.MC, UI.ModelMC (to_map d, d')
+                    MC, ModelMC (to_map d, d')
                 match pl with
-                | UI.ModelEnum x -> test_enum x
-                | UI.ModelMC(a,b) -> test_mc (a, b)
-                |> TestingModel |> dispact_client
+                | ModelEnum x -> test_enum x
+                | ModelMC(a,b) -> test_mc (a, b)
+                |> TestingModel |> dispatch_client
             with e ->
                 printfn $"%A{e}"
             model, []
-        | _ -> model, []
 
-    let webApp =
-        Bridge.mkServer Shared.Constants.socket_endpoint init update
-        |> Bridge.run Giraffe.server
-
-module TestSignalR =
     open Microsoft.AspNetCore.SignalR
-    open Fable.Remoting
 
-    type W = Qwe of float | Asd of bool
-    type R = {x : string; y : W}
-
-    open Thoth.Json
-    open Shared.Utils
-
-    type TestHub() =
+    type LearnHub() =
         inherit Hub()
 
-        member this.Hello(q : obj) = task {
-            printfn "Got: %A" (Serialization.deserialize<R> q)
-            do! this.Clients.Caller.SendAsync("response", Serialization.serialize {x="I am fine."; y=Asd true})
+        member this.Mailbox(msg : string) = task {
+            printfn "Started Training."
+            let msg = Decode.Auto.fromString<MsgClientToLearnServer> msg
+            let dispatch (x : MsgServerToClient) = this.Clients.Caller.SendAsync("MailBox", Encode.Auto.toString x) |> ignore
+            let model = this.Context.Items["model"] :?> _
+            let model,cmds = update dispatch msg.OkValue model
+            for cmd in cmds do cmd dispatch
+            this.Context.Items["model"] <- model
+            printfn "Finished Training."
         }
 
-        // member this.Hello(q : string) = task {
-        //     printfn "Got: %A" (Decode.Auto.fromString<R> q)
-        //     do! this.Clients.Caller.SendAsync("response", Encode.Auto.toString {x="I am fine."; y=Asd true})
-        // }
+        override this.OnConnectedAsync() = task {
+            printf "Started connection."
+            let dispatch (x : MsgServerToClient) = this.Clients.Caller.SendAsync("MailBox", Encode.Auto.toString x) |> ignore
+            let init,cmds = init dispatch ()
+            for cmd in cmds do cmd dispatch
+            this.Context.Items["model"] <- init
+        }
+
+        override this.OnDisconnectedAsync(ex) = task {
+            printf "Closed connection."
+            return ()
+        }
 
 open Argu
 
-type ServerType = Play | Learn | All | TestSignalR
+type ServerType = Play | Learn | All
 type Arguments =
     | [<Unique>] Mode of ServerType
 
@@ -149,7 +151,7 @@ type Arguments =
 
 [<EntryPoint>]
 let main args =
-    printfn "Name: %s; PID: %i" (Process.GetCurrentProcess().ProcessName) (System.Diagnostics.Process.GetCurrentProcess().Id)
+    printfn "Name: %s; PID: %i" (Process.GetCurrentProcess().ProcessName) (Process.GetCurrentProcess().Id)
     printfn "%A" args
     let parser = ArgumentParser.Create<Arguments>()
     let results = parser.Parse(args)
@@ -161,29 +163,32 @@ let main args =
             url Shared.Constants.Url.play_server
         } |> run
     let start_learn () =
-        application {
-            use_router Learn.webApp
-            app_config Giraffe.useWebSockets
-            url Shared.Constants.Url.learn_server
-        } |> run
+        let builder = WebApplication.CreateBuilder(args)
+        // builder.WebHost.ConfigureLogging(fun x ->
+        //     x.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Debug)
+        //         .AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Debug) |> ignore
+        //     ) |> ignore
+        builder.Services
+            .AddCors()
+            .AddSignalR(fun x ->
+                x.EnableDetailedErrors <- true
+                x.MaximumReceiveMessageSize <- Nullable()
+                ) |> ignore
+        builder.WebHost.UseUrls [|Shared.Constants.Url.learn_server|] |> ignore
+        let app = builder.Build()
+        app.UseCors(fun x ->
+            // x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod() |> ignore
+            x.WithOrigins("http://localhost:8080")
+                .AllowAnyHeader()
+                .WithMethods("GET", "POST")
+                .AllowCredentials() |> ignore
+            ) |> ignore
+        app.MapHub<Learn.LearnHub>(Shared.Constants.Url.learn_hub) |> ignore
+        app.Run()
     match results.GetResult(Mode, All) with
     | Play -> start_play()
     | Learn -> start_learn()
     | All ->
         for f in [start_play; start_learn] do
             Thread(ThreadStart(f)).Start()
-    | TestSignalR -> // I've configured the dotnet run to start this mode for this video.
-        let builder = WebApplication.CreateBuilder(args)
-        builder.Services
-            .AddSignalR()
-            .AddMessagePackProtocol()
-
-        |> ignore
-        builder.WebHost.UseUrls [|Shared.Constants.Url.play_server|] |> ignore
-        let app = builder.Build()
-        app.UseFileServer() |> ignore
-        app.MapHub<TestSignalR.TestHub>("socket/test") |> ignore
-        app.Run()
-
-
     0

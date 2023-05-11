@@ -16,7 +16,7 @@ open CFR
 
 module UI =
     type CFRPlayerType = Enum | MC
-    type CFRPlayerModel =
+    type [<ReferenceEquality>] CFRPlayerModel =
         | ModelEnum of Map<GameModel,PolicyArrays<Action>>
         | ModelMC of Map<GameModel,PolicyArrays<Action>> * Map<GameModel,ValueArrays>
 
@@ -55,10 +55,10 @@ module UI =
         testing_model : CFRPlayerModel
         training_run_iterations : string
         training_iterations : int
-        training_iterations_left : int
+        training_iterations_left : uint
         training_results : (int * (float * float)) list
         testing_run_iterations : string
-        testing_iterations_left : int
+        testing_iterations_left : uint
         testing_results : float list
     }
 
