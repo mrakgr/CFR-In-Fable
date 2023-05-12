@@ -24,40 +24,44 @@ module HubUtils =
     open Microsoft.AspNetCore.SignalR
 
     type Dispatch<'msg> = 'msg -> unit
-    let mb dispatch
-            (init : 'msg_server_to_client Dispatch -> unit -> 'model * ('msg_server_to_client Dispatch -> unit) list)
-            (update : 'msg_server_to_client Dispatch -> 'msg_client_to_server -> 'model -> 'model * ('msg_server_to_client Dispatch -> unit) list) = new MailboxProcessor<_>(fun mb -> async {
-        let rec loop model = async {
-            let! msg = mb.Receive()
-            printfn "Started Training."
-            let model,cmds = update dispatch msg model
-            for cmd in cmds do cmd dispatch
-            printfn "Finished Training."
-            return! loop model
-        }
+    let create_mailbox_loop dispatch init update =
+        let mb = new MailboxProcessor<_>(fun mb -> async {
+            let rec loop model = async {
+                let! msg,(ch : AsyncReplyChannel<_>) = mb.Receive()
+                printfn "Started Training."
+                let model,cmds = update dispatch msg model
+                for cmd in cmds do cmd dispatch
+                ch.Reply()
+                printfn "Finished Training."
+                return! loop model
+            }
 
-        let init,cmds = init dispatch ()
-        for cmd in cmds do cmd dispatch
-        return! loop init
-    })
+            let init,cmds = init dispatch ()
+            for cmd in cmds do cmd dispatch
+            return! loop init
+        })
+        mb.Start()
+        mb
 
     type ElmishHub<'model,'msg_server_to_client,'msg_client_to_server>(
             init : 'msg_server_to_client Dispatch -> unit -> 'model * ('msg_server_to_client Dispatch -> unit) list,
-            update : 'msg_server_to_client Dispatch -> 'msg_client_to_server -> 'model -> 'model * ('msg_server_to_client Dispatch -> unit) list) as this =
+            update : 'msg_server_to_client Dispatch -> 'msg_client_to_server -> 'model -> 'model * ('msg_server_to_client Dispatch -> unit) list
+            ) =
         inherit Hub()
-        let dispatch (x : 'msg_server_to_client) = this.Clients.Caller.SendAsync("MailBox", Encode.Auto.toString x) |> ignore
 
+        let dispatch (ctx : ISingleClientProxy) (x : 'msg_server_to_client) = ctx.SendAsync("MailBox", Encode.Auto.toString x) |> ignore
         member this.Mailbox(msg : string) = task {
-            let mb = this.Context.Items["mb"] :?> MailboxProcessor<'msg_client_to_server>
-            mb.Post (Decode.Auto.fromString<'msg_client_to_server> msg).OkValue
+            let mb = this.Context.Items["mb"] :?> MailboxProcessor<'msg_client_to_server * unit AsyncReplyChannel>
+            let msg = Decode.Auto.fromString<'msg_client_to_server> msg
+            do! mb.PostAndAsyncReply(fun ch -> msg.OkValue, ch)
         }
 
         override this.OnConnectedAsync() = task {
             printf "Started connection."
-            this.Context.Items["mb"] <- mb dispatch init update
+            this.Context.Items["mb"] <- create_mailbox_loop (dispatch this.Clients.Caller) init update
         }
 
-        override this.OnDisconnectedAsync(ex) = task {
+        override this.OnDisconnectedAsync _ = task {
             printf "Closed connection."
             let mb = this.Context.Items["mb"] :?> IDisposable
             mb.Dispose()

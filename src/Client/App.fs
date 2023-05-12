@@ -1,6 +1,7 @@
 module App
 
 open System
+open Client.Hub
 open Elmish
 open Elmish.React
 open Elmish.Bridge
@@ -12,39 +13,8 @@ open Elmish.HMR
 
 open Shared.Messages
 open Shared.Constants
-open Thoth.Json
 
-module SwitchHub =
-    open Fable.Core
-    open Fable.Bindings.SignalR
-
-    let inline invoke (hub : HubConnection) (msg : 'msg_server_to_client) = hub.invoke("MailBox",Encode.Auto.toString msg)
-
-    type SwitchClientHub<'msg_server_to_client, 'msg_client_to_server>(invoke, hub : HubConnection) =
-        do hub.on("MailBox",fun (x : string) ->
-            match Decode.Auto.fromString<_> x with
-            | Ok x -> dispatch (Index.FromServer x)
-            | Error x -> failwith x
-            )
-
-        let mb = new MailboxProcessor<obj>(fun mb -> async {
-            while true do
-                do! hub.start() |> Async.AwaitPromise
-                let rec loop msg = async {
-                    match msg with
-                    | None -> return ()
-                    | Some msg ->
-                        invoke hub msg
-                        let! msg = mb.TryReceive(0)
-                        return! loop msg
-                }
-                let! msg = mb.Receive()
-                do! loop (Some msg)
-                do! hub.stop() |> Async.AwaitPromise
-        })
-
-
-
+[<AutoOpen>]
 module LearnHub =
     open Fable.Bindings.SignalR
 
@@ -54,50 +24,9 @@ module LearnHub =
             .configureLogging(LogLevel.Error)
             .build()
 
-    let queue = ResizeArray()
+    let switch_hub : Hub<MsgServerToClient,MsgClientToLearnServer> = Auto.SwitchHub hub
 
-    let send (msg : MsgClientToLearnServer) = hub.send("MailBox",Encode.Auto.toString msg) |> ignore
-
-    let dispatch (msg : MsgClientToLearnServer) =
-        match hub.state with
-        | HubConnectionState.Connected -> send msg
-        | _ -> queue.Add msg
-
-open LearnHub
-
-Program.mkProgram Index.init (Index.update dispatch) Index.view
-|> Program.withSubscription (fun model ->
-    let body (dispatch : Index.MsgClient -> unit) =
-        promise {
-            do! hub.start()
-            printf "Started connection."
-            hub.on("MailBox",fun (x : string) ->
-                match Decode.Auto.fromString<_> x with
-                | Ok x -> dispatch (Index.FromServer x)
-                | Error x -> failwith x
-                )
-            for msg in queue do
-                send msg
-            queue.Clear()
-        } |> Promise.start
-        {new IDisposable with
-            member _.Dispose() =
-                promise {
-                    do! hub.stop()
-                    hub.off("MailBox")
-                    printf "Closed connection."
-                    dispatch Index.LearnConnectionClosed
-                } |> Promise.start
-            }
-    let is_busy =
-        model.cfr_players |> Map.exists (fun name pl ->
-            pl.testing_iterations_left > 0u || pl.training_iterations_left > 0u
-            )
-    [
-        if is_busy then
-            [nameof is_busy], body
-    ]
-    )
+Program.mkProgram (Index.init switch_hub) (Index.update switch_hub) Index.view
 |> Program.withBridgeConfig (
         Bridge.endpoint socket_endpoint
         |> Bridge.withMapping Index.FromServer
@@ -107,4 +36,3 @@ Program.mkProgram Index.init (Index.update dispatch) Index.view
 |> Program.withDebugger
 #endif
 |> Program.run
-

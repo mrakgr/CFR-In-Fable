@@ -1,6 +1,7 @@
 module Index
 
 open System
+open Client.Hub
 open Elmish
 open Elmish.Bridge
 open Shared.Messages
@@ -40,7 +41,7 @@ let init_player_model = function
     | Enum -> ModelEnum Map.empty
     | MC -> ModelMC (Map.empty, Map.empty)
 
-let init () : ClientModel * Cmd<_> =
+let init (learn_hub : Hub<MsgServerToClient,MsgClientToLearnServer>) () : ClientModel * Cmd<_> =
     {
         leduc_model = LeducModel.Default
         message_list = []
@@ -64,9 +65,9 @@ let init () : ClientModel * Cmd<_> =
                         testing_run_iterations = "100"
                         }
             ] |> Map
-    }, []
+    }, Cmd.ofEffect (fun disp -> learn_hub.SetDispatch (FromServer >> disp))
 
-let update dispatch_learn msg (model : ClientModel) : ClientModel * Cmd<_> =
+let update (learn_hub : Hub<MsgServerToClient,MsgClientToLearnServer>) msg (model : ClientModel) : ClientModel * Cmd<_> =
     try
         let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
             let m,cmd = f model.cfr_players[active_cfr_player]
@@ -92,12 +93,12 @@ let update dispatch_learn msg (model : ClientModel) : ClientModel * Cmd<_> =
         | TrainingStartClicked ->
             update <| fun m ->
                 let iter = uint m.training_run_iterations
-                dispatch_learn (MsgClientToLearnServer.Train (iter, m.training_model))
+                learn_hub.Invoke (MsgClientToLearnServer.Train (iter, m.training_model))
                 {m with training_iterations_left=m.training_iterations_left + iter}, []
         | TestingStartClicked ->
             update <| fun m ->
                 let iter = uint m.testing_run_iterations
-                dispatch_learn (MsgClientToLearnServer.Test (iter, m.training_model))
+                learn_hub.Invoke (MsgClientToLearnServer.Test (iter, m.training_model))
                 {m with testing_iterations_left=m.testing_iterations_left+iter; testing_results=[]; testing_model=init_player_model model.active_cfr_player}, []
         | TrainingInputIterationsChanged s -> update <| fun m -> {m with training_run_iterations = s}, []
         | TestingInputIterationsChanged s -> update <| fun m -> {m with testing_run_iterations=s}, []
