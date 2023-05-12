@@ -940,7 +940,7 @@ type [<AllowNullLiteral>] XhrHttpClient =
 type [<AllowNullLiteral>] XhrHttpClientStatic =
     [<EmitConstructor>] abstract Create: logger: ILogger -> XhrHttpClient
 
-[<Fable.Core.ImportAll("@microsoft/signalr")>]
+[<Fable.Core.ImportAll("@microsoft/signalr"); AutoOpen>]
 module Exports =
     let AbortController: AbortControllerStatic = jsNative
     let AccessTokenHttpClient: AccessTokenHttpClientStatic = jsNative

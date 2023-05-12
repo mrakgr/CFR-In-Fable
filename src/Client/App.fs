@@ -14,9 +14,39 @@ open Shared.Messages
 open Shared.Constants
 open Thoth.Json
 
+module SwitchHub =
+    open Fable.Core
+    open Fable.Bindings.SignalR
+
+    let inline invoke (hub : HubConnection) (msg : 'msg_server_to_client) = hub.invoke("MailBox",Encode.Auto.toString msg)
+
+    type SwitchClientHub<'msg_server_to_client, 'msg_client_to_server>(invoke, hub : HubConnection) =
+        do hub.on("MailBox",fun (x : string) ->
+            match Decode.Auto.fromString<_> x with
+            | Ok x -> dispatch (Index.FromServer x)
+            | Error x -> failwith x
+            )
+
+        let mb = new MailboxProcessor<obj>(fun mb -> async {
+            while true do
+                do! hub.start() |> Async.AwaitPromise
+                let rec loop msg = async {
+                    match msg with
+                    | None -> return ()
+                    | Some msg ->
+                        invoke hub msg
+                        let! msg = mb.TryReceive(0)
+                        return! loop msg
+                }
+                let! msg = mb.Receive()
+                do! loop (Some msg)
+                do! hub.stop() |> Async.AwaitPromise
+        })
+
+
+
 module LearnHub =
     open Fable.Bindings.SignalR
-    open Fable.Bindings.SignalR.Exports
 
     let hub =
         HubConnectionBuilder.Create()

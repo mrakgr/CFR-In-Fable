@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.Diagnostics
 open System.Threading
+open System.Threading.Tasks
 open Elmish
 open Leduc
 open Leduc.Play
@@ -18,6 +19,49 @@ open Shared.Leduc.Types.UI
 open Shared.Messages
 open Shared.Utils
 open Thoth.Json.Net
+
+module HubUtils =
+    open Microsoft.AspNetCore.SignalR
+
+    type Dispatch<'msg> = 'msg -> unit
+    let mb dispatch
+            (init : 'msg_server_to_client Dispatch -> unit -> 'model * ('msg_server_to_client Dispatch -> unit) list)
+            (update : 'msg_server_to_client Dispatch -> 'msg_client_to_server -> 'model -> 'model * ('msg_server_to_client Dispatch -> unit) list) = new MailboxProcessor<_>(fun mb -> async {
+        let rec loop model = async {
+            let! msg = mb.Receive()
+            printfn "Started Training."
+            let model,cmds = update dispatch msg model
+            for cmd in cmds do cmd dispatch
+            printfn "Finished Training."
+            return! loop model
+        }
+
+        let init,cmds = init dispatch ()
+        for cmd in cmds do cmd dispatch
+        return! loop init
+    })
+
+    type ElmishHub<'model,'msg_server_to_client,'msg_client_to_server>(
+            init : 'msg_server_to_client Dispatch -> unit -> 'model * ('msg_server_to_client Dispatch -> unit) list,
+            update : 'msg_server_to_client Dispatch -> 'msg_client_to_server -> 'model -> 'model * ('msg_server_to_client Dispatch -> unit) list) as this =
+        inherit Hub()
+        let dispatch (x : 'msg_server_to_client) = this.Clients.Caller.SendAsync("MailBox", Encode.Auto.toString x) |> ignore
+
+        member this.Mailbox(msg : string) = task {
+            let mb = this.Context.Items["mb"] :?> MailboxProcessor<'msg_client_to_server>
+            mb.Post (Decode.Auto.fromString<'msg_client_to_server> msg).OkValue
+        }
+
+        override this.OnConnectedAsync() = task {
+            printf "Started connection."
+            this.Context.Items["mb"] <- mb dispatch init update
+        }
+
+        override this.OnDisconnectedAsync(ex) = task {
+            printf "Closed connection."
+            let mb = this.Context.Items["mb"] :?> IDisposable
+            mb.Dispose()
+        }
 
 module Play =
     type ServerModel = {
@@ -109,34 +153,10 @@ module Learn =
                 printfn $"%A{e}"
             model, []
 
-    open Microsoft.AspNetCore.SignalR
-
     type LearnHub() =
-        inherit Hub()
+        inherit HubUtils.ElmishHub<ServerModel,MsgServerToClient,MsgClientToLearnServer>(init, update)
 
-        member this.Mailbox(msg : string) = task {
-            printfn "Started Training."
-            let msg = Decode.Auto.fromString<MsgClientToLearnServer> msg
-            let dispatch (x : MsgServerToClient) = this.Clients.Caller.SendAsync("MailBox", Encode.Auto.toString x) |> ignore
-            let model = this.Context.Items["model"] :?> _
-            let model,cmds = update dispatch msg.OkValue model
-            for cmd in cmds do cmd dispatch
-            this.Context.Items["model"] <- model
-            printfn "Finished Training."
-        }
 
-        override this.OnConnectedAsync() = task {
-            printf "Started connection."
-            let dispatch (x : MsgServerToClient) = this.Clients.Caller.SendAsync("MailBox", Encode.Auto.toString x) |> ignore
-            let init,cmds = init dispatch ()
-            for cmd in cmds do cmd dispatch
-            this.Context.Items["model"] <- init
-        }
-
-        override this.OnDisconnectedAsync(ex) = task {
-            printf "Closed connection."
-            return ()
-        }
 
 open Argu
 
