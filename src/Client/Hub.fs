@@ -53,17 +53,14 @@ type Hub<'msg_server_to_client, 'msg_client_to_server>(
                 while true do
                     let! msg = mb.Receive()
                     do! hub.start()
-                    printfn "Started connection."
                     let rec loop msg = promise {
                         do! invoke msg
-                        printfn "Done invoking."
                         if mb.Count > 0 then
                             let! x = mb.Receive()
                             return! loop x
                     }
                     do! loop msg
                     do! hub.stop()
-                    printfn "Stopped connection."
             } |> Promise.start
         else
             promise {
