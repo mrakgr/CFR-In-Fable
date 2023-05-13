@@ -14,7 +14,9 @@
     "dependencies": {
         "@microsoft/signalr": "^7.0.5",
         "@microsoft/signalr-protocol-msgpack": "^7.0.5",
+        "@thi.ng/csp": "^2.1.49",
         "bulma": "^0.9.4",
+        "flowp": "^0.4.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "recharts": "^2.5.0"
