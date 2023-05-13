@@ -4,10 +4,36 @@ open Fable.Core
 open Fable.Bindings.SignalR
 open Thoth.Json
 
-let create_mailbox<'t> f =
-    let mb = new MailboxProcessor<'t>(f)
-    mb.Start()
-    mb
+type MailBox<'a>() =
+    let arg : 'a ResizeArray = ResizeArray()
+    let cont = ResizeArray()
+
+    member this.Post x =
+        arg.Add(x)
+        this.TryResolve()
+
+    member this.Receive() =
+        Promise.create (fun on_succ _ ->
+            cont.Add on_succ
+            this.TryResolve()
+            )
+
+    member this.Count = arg.Count
+
+    member this.TryResolve() =
+        let inline pop (x : ResizeArray<_>) =
+            // Getting an array value from the beginning is not the most efficient way, but it won't be a problem.
+            let i = 0
+            let a = x[i]
+            x.RemoveAt(i)
+            a
+        if cont.Count > 0 && arg.Count > 0 then
+            let a = pop arg
+            let f = pop cont
+
+            // We don't want to just apply the function on the same thread otherwise it might lead to deadlocks.
+            // Doing it like this will push it onto the system queue.
+            promise { f a } |> Promise.start
 
 type Hub<'msg_server_to_client, 'msg_client_to_server>(
         decode : string -> 'msg_server_to_client,
@@ -20,31 +46,32 @@ type Hub<'msg_server_to_client, 'msg_client_to_server>(
     let invoke (msg : 'msg_client_to_server) = hub.invoke("MailBox",encode msg)
     let send (msg : 'msg_client_to_server) = hub.send("MailBox",encode msg)
 
-    let mb =
+    let mb = MailBox()
+    do
         if is_switchhub then
-            create_mailbox <| fun mb -> async {
+            promise {
                 while true do
                     let! msg = mb.Receive()
-                    do! hub.start() |> Async.AwaitPromise
+                    do! hub.start()
                     printfn "Started connection."
-                    let rec loop msg = async {
-                        do! invoke msg |> Async.AwaitPromise
+                    let rec loop msg = promise {
+                        do! invoke msg
                         printfn "Done invoking."
-                        if mb.CurrentQueueLength > 0 then
+                        if mb.Count > 0 then
                             let! x = mb.Receive()
                             return! loop x
                     }
                     do! loop msg
-                    do! hub.stop() |> Async.AwaitPromise
+                    do! hub.stop()
                     printfn "Stopped connection."
-            }
+            } |> Promise.start
         else
-            create_mailbox <| fun mb -> async {
-                do! hub.start() |> Async.AwaitPromise
+            promise {
+                do! hub.start()
                 while true do
                     let! msg = mb.Receive()
-                    do! send msg |> Async.AwaitPromise
-            }
+                    do! send msg
+            } |> Promise.start
 
     member _.Invoke x = mb.Post x
     member _.Send x =
