@@ -71,7 +71,7 @@ let update (learn_hub : Hub<MsgServerToClient,MsgClientToLearnServer>) msg (mode
     try
         let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
             let m,cmd = f model.cfr_players[active_cfr_player]
-            {model with cfr_players=Map.add model.active_cfr_player m model.cfr_players}, cmd
+            {model with cfr_players=Map.add active_cfr_player m model.cfr_players}, cmd
         let inline update f = update' model.active_cfr_player f
         match msg with
         | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}, Cmd.bridgeSend(FromClient (SelectedAction x))
@@ -108,17 +108,17 @@ let update (learn_hub : Hub<MsgServerToClient,MsgClientToLearnServer>) msg (mode
             {model with cfr_players=Map.map (fun _ -> f) model.cfr_players}, []
         | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
             {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}, []
-        | FromServer (TrainingResult(a,b)) ->
-            update <| fun m ->
+        | FromServer (TrainingResult(pl,(a,b))) ->
+            update' pl <| fun m ->
                 let mutable i = 150
                 let x = (m.training_iterations,(a,b)) :: m.training_results |> List.takeWhile (fun _ -> if i > 0 then i <- i-1; true else false)
                 {m with training_results=x; training_iterations_left=m.training_iterations_left-1u; training_iterations=m.training_iterations+1}, []
+        | FromServer (TestingResult(pl,x)) ->
+            update' pl <| fun m ->
+                {m with testing_results=x :: m.testing_results; testing_iterations_left=m.testing_iterations_left-1u}, []
         | FromServer (TrainingModel (a,x)) ->
             update' a <| fun m ->
                 {m with training_model=x}, []
-        | FromServer (TestingResult x) ->
-            update <| fun m ->
-                {m with testing_results=x :: m.testing_results; testing_iterations_left=m.testing_iterations_left-1u}, []
         | FromServer (TestingModel (a,x)) ->
             update' a <| fun m ->
                 {m with testing_model=x}, []

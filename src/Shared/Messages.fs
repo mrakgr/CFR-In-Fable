@@ -6,9 +6,9 @@ open Shared.Leduc.Types.UI
 
 type MsgServerToClient =
     | GameState of LeducModel * string list * AllowedActions
-    | TrainingResult of float * float
+    | TrainingResult of CFRPlayerType * (float * float)
     | TrainingModel of CFRPlayerType * CFRPlayerModel
-    | TestingResult of float
+    | TestingResult of CFRPlayerType * float
     | TestingModel of CFRPlayerType * CFRPlayerModel
 
 type MsgClientToPlayServer =

@@ -24,28 +24,26 @@ module HubUtils =
     open Microsoft.AspNetCore.SignalR
 
     type Dispatch<'msg> = 'msg -> unit
-    let create_mailbox_loop dispatch init update =
+    let create_mailbox_loop canc dispatch init update =
         let mb = new MailboxProcessor<_>(fun mb -> async {
             let rec loop model = async {
                 let! msg,(ch : AsyncReplyChannel<_>) = mb.Receive()
-                printfn "Started Training."
                 let model,cmds = update dispatch msg model
                 for cmd in cmds do cmd dispatch
                 ch.Reply()
-                printfn "Finished Training."
                 return! loop model
             }
 
             let init,cmds = init dispatch ()
             for cmd in cmds do cmd dispatch
             return! loop init
-        })
+        },canc)
         mb.Start()
         mb
 
     type ElmishHub<'model,'msg_server_to_client,'msg_client_to_server>(
             init : 'msg_server_to_client Dispatch -> unit -> 'model * ('msg_server_to_client Dispatch -> unit) list,
-            update : 'msg_server_to_client Dispatch -> 'msg_client_to_server -> 'model -> 'model * ('msg_server_to_client Dispatch -> unit) list
+            update : CancellationToken -> 'msg_server_to_client Dispatch -> 'msg_client_to_server -> 'model -> 'model * ('msg_server_to_client Dispatch -> unit) list
             ) =
         inherit Hub()
 
@@ -57,12 +55,11 @@ module HubUtils =
         }
 
         override this.OnConnectedAsync() = task {
-            printf "Started connection."
-            this.Context.Items["mb"] <- create_mailbox_loop (dispatch this.Clients.Caller) init update
+            let canc = this.Context.ConnectionAborted
+            this.Context.Items["mb"] <- create_mailbox_loop canc (dispatch this.Clients.Caller) init (update canc)
         }
 
         override this.OnDisconnectedAsync _ = task {
-            printf "Closed connection."
             let mb = this.Context.Items["mb"] :?> IDisposable
             mb.Dispose()
         }
@@ -102,20 +99,21 @@ module Learn =
     type ServerModel = unit
 
     let init _ () : ServerModel * Cmd<_> = (), []
-    let update dispatch_client msg (model : ServerModel) : ServerModel * Cmd<_> =
+    let update (canc : CancellationToken) dispatch_client msg (model : ServerModel) : ServerModel * Cmd<_> =
         match msg with
         | Train (num_iters, pl) ->
             let train_template f =
                 try
                     let mutable num_iters = num_iters
-                    while num_iters > 0u do // TODO: Don't forget the cancellation token.
+                    while num_iters > 0u do
+                        canc.ThrowIfCancellationRequested()
                         f() |> TrainingResult |> dispatch_client
                         num_iters <- num_iters-1u
                 with e ->
                     printfn $"%A{e}"
             let train_enum (d : Map<_,_>) =
                 let d = Dictionary d
-                train_template (fun () -> Learn.train_enum d)
+                train_template (fun () -> Enum, Learn.train_enum d)
                 Enum, ModelEnum (to_map d)
             let train_mc (d : Map<_,_>,d' : Map<_,_>) =
                 let d = Dictionary d
@@ -126,7 +124,7 @@ module Learn =
                     let mutable r = 0.0,0.0
                     for i=1 to iters do
                         r <- f (+) r (Learn.train_mc d d')
-                    f (/) r (float iters, float iters)
+                    MC, f (/) r (float iters, float iters)
                     )
                 MC, ModelMC (to_map d, to_map d')
             match pl with
@@ -136,18 +134,19 @@ module Learn =
             model, []
         | Test (num_iters, pl) ->
             try
-                let test_template d =
+                let test_template pl d =
                     let mutable num_iters = num_iters
-                    while num_iters > 0u do // TODO: Don't forget the cancellation token.
-                        Learn.test d |> TestingResult |> dispatch_client
+                    while num_iters > 0u do
+                        canc.ThrowIfCancellationRequested()
+                        Learn.test d |> fun x -> TestingResult(pl,x) |> dispatch_client
                         num_iters <- num_iters-1u
                 let test_enum (d : Map<_,_>) =
                     let d = Dictionary d
-                    test_template d
+                    test_template Enum d
                     Enum, ModelEnum (to_map d)
                 let test_mc (d : Map<_,_>,d' : Map<_,_>) =
                     let d = Dictionary d
-                    test_template d
+                    test_template MC d
                     MC, ModelMC (to_map d, d')
                 match pl with
                 | ModelEnum x -> test_enum x
@@ -201,10 +200,9 @@ let main args =
         builder.WebHost.UseUrls [|Shared.Constants.Url.learn_server|] |> ignore
         let app = builder.Build()
         app.UseCors(fun x ->
-            // x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod() |> ignore
-            x.WithOrigins("http://localhost:8080")
+            x.SetIsOriginAllowed(fun _ -> true)
                 .AllowAnyHeader()
-                .WithMethods("GET", "POST")
+                .AllowAnyMethod()
                 .AllowCredentials() |> ignore
             ) |> ignore
         app.MapHub<Learn.LearnHub>(Shared.Constants.Url.learn_hub) |> ignore
