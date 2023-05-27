@@ -23,7 +23,7 @@ type MsgClient =
     | TestingStartClicked
     | TrainingInputIterationsChanged of string
     | TestingInputIterationsChanged of string
-    | LearnConnectionClosed
+    | LearnConnectionClosed // This one should't be here.
     | FromServer of msg: MsgServerToClient
 
 type ClientModel = {
@@ -66,6 +66,12 @@ let init (learn_hub : Hub<MsgServerToClient,MsgClientToLearnServer>) () : Client
                         }
             ] |> Map
     }, Cmd.ofEffect (fun disp -> learn_hub.SetDispatch (FromServer >> disp))
+
+// This update function we will turn into a reducer later. We'll move it into the F# class library we just created.
+// Since I don't know how to create a reactive store for Blazor, we'll just use the Fluxor library.
+
+// It is similar to the Elmish loop, except it will be done using dependency injection.
+// Since it has union types, F# is a lot more suitable for writing reducers than C#.
 
 let update (learn_hub : Hub<MsgServerToClient,MsgClientToLearnServer>) msg (model : ClientModel) : ClientModel * Cmd<_> =
     try
@@ -129,6 +135,15 @@ let update (learn_hub : Hub<MsgServerToClient,MsgClientToLearnServer>) msg (mode
 module View =
     open Feliz
 
+    // Let's start with the game UI.
+    // We'll factor it into its own Blazor component.
+
+    // We'll have to put in some types into the F# library.
+
+    // For the sake of keeping our mind clear, we opted not to link to those other projects and instead brought in the types
+    // directly.
+
+    // Whatever helpers we can, we'll put into the F# library.
     let game_ui (model : LeducModel, allowed_actions : AllowedActions) dispatch =
         let card (x : Card option) =
             let card =
@@ -151,6 +166,8 @@ module View =
                 prop.disabled (not (AllowedActions.IsAllowed allowed_actions action))
             ]
 
+        // I wonder how I could define functions with uncurried args like these in C#.
+        // Not very easily...
         let padder_template (className : string)  (x : float) =
             Html.div [
                 prop.className className
@@ -174,6 +191,7 @@ module View =
                 prop.text (Shared.Constants.names[s])
             ]
 
+        // Let's start...
         Html.div [
             prop.className "game-ui border"
             prop.children [
@@ -526,5 +544,15 @@ module View =
                     test_ui model dispatch
             ]
         ]
+
+// All of this...
+// And convert it into Blazor.
+
+// There is a flow to doing these kinds of rewrites.
+// First, you have to understand that doing a rewrite is not like the regular kind of programming.
+
+// You can't use your regular kind of thinking for this.
+// If you try for example...
+
 
 let view model dispatch = View.main model dispatch // Note: Since Fable 4, this function musn't be partially applied. Don't reduce the args.

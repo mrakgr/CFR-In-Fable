@@ -1,0 +1,380 @@
+* {
+    box-sizing: border-box;
+    font-size: inherit;
+    font-family: inherit;
+}
+
+:root {
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+body {
+    margin: 0;
+}
+
+.ui {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+.message-ui {
+    flex: 1;
+    width: 100%;
+    padding: 0 1em;
+    font-size: 1.5em;
+    overflow: auto;
+}
+
+.message-ui > p {
+    margin: 0.125em 0;
+}
+
+.message-ui::-webkit-scrollbar {
+    width: 1em;
+    height: 1em;
+}
+
+.message-ui::-webkit-scrollbar-track {
+    border: 0.1rem solid #b3b3b3;
+    border-radius: 0.5em;
+}
+
+.message-ui::-webkit-scrollbar-thumb {
+    background: #292929;
+    border-radius: 0.5em;
+}
+
+.message-ui::-webkit-scrollbar-thumb:hover {
+    background: #000000;
+}
+
+.border {
+    border: 0.4rem solid;
+}
+
+.top {
+    display: flex;
+    justify-content: center;
+    font-size: 3em;
+    width: 100%;
+    flex: 1;
+}
+
+.top-left {
+    display: flex;
+    justify-content: end;
+    align-items: end;
+    flex: 1;
+}
+
+.top-middle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0.3;
+}
+
+.top-right {
+    flex: 1;
+}
+
+.middle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3em;
+    width: 100%;
+    flex: 1;
+}
+
+.card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    border: 0.3rem solid;
+    background-color: burlywood;
+    user-select: none;
+    width: 1.5ch;
+    height: 1.3em;
+}
+
+.pot-size {
+    font-size: 1.5em;
+    background-color: white;
+    border: 0.3rem solid;
+    user-select: none;
+    padding: 0 0.5ch;
+}
+
+.action {
+    font-size: 0.75em;
+    flex-basis: 3em;
+    border: 0.3rem solid;
+    user-select: none;
+    background-color: hsl(0, 0%, 95%);
+}
+
+.action:active:hover {
+    background-color: hsl(0, 0%, 70%);
+}
+
+.action:active:disabled {
+    background-color: hsl(0, 0%, 95%);
+}
+
+.action-padder {
+    font-size: 0.75em;
+}
+
+.bottom {
+    display: flex;
+    justify-content: center;
+    /*align-items: center;*/
+    font-size: 3em;
+    width: 100%;
+    flex: 1;
+}
+
+.bottom-left {
+    display: flex;
+    justify-content: end;
+    align-items: start;
+    flex: 1;
+}
+
+.bottom-middle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0.3;
+}
+
+.bottom-right {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex: 1;
+}
+
+.menu-game-ui {
+    display: flex;
+    flex-direction: row;
+    flex: 4;
+    width: 100%;
+}
+
+.game-ui {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    flex: 1;
+}
+
+.game-ui-background {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: -1;
+}
+
+.game-ui-background p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    font-style: italic;
+    font-size: 10em;
+    flex: 1;
+}
+
+.bg-red {
+    color: hsla(0, 100%, 50%, 0.2);
+    background-color: hsla(0, 100%, 50%, 0.03);
+}
+
+.bg-green {
+    color: hsla(120, 100%, 50%, 0.2);
+    background-color: hsla(120, 100%, 50%, 0.03);
+}
+
+.menu-ui {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    flex-basis: 10em;
+}
+
+.menu-button {
+    font-size: 2em;
+    border: 0.35rem solid #d9d9d9;
+    padding: 0.5em;
+    width: 100%;
+    border-radius: 10%;
+    background-color: hsl(0, 0%, 35%);
+    color: white;
+}
+
+.menu-button:active:hover {
+    background-color: hsl(0, 0%, 55%);
+}
+
+.id-pot {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+.id {
+    margin: 0.2em 0;
+}
+
+.player-select {
+    font-size: 2em;
+    border: 0.2rem solid;
+    border-radius: 10%;
+}
+
+.tabs-ui {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    background-color: hsl(0, 0%, 95%);
+}
+
+.tab {
+    margin: 0.2rem;
+    border: 0.4rem solid;
+    border-radius: 0.3rem;
+    min-width: 5em;
+    font-size: 2em;
+}
+
+.active-tab {
+    background-color: hsl(0, 0%, 20%);
+    color: hsl(0, 0%, 80%);
+}
+
+.inactive-tab {
+    background-color: hsl(0, 0%, 80%);
+    color: hsl(0, 0%, 20%);
+}
+
+.train-ui {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+    width: 100%;
+    height: 0;
+    flex: 1;
+}
+
+.train-chart {
+    width: 100%;
+    flex: 1;
+}
+
+.train-table {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    width: 100%;
+    flex: 1;
+    overflow: auto;
+}
+
+.train-table::-webkit-scrollbar {
+    width: 1em;
+    height: 1em;
+}
+
+.train-table::-webkit-scrollbar-track {
+    border: 0.1rem solid #b3b3b3;
+    border-radius: 0.5em;
+}
+
+.train-table::-webkit-scrollbar-thumb {
+    background: #292929;
+    border-radius: 0.5em;
+}
+
+.train-table::-webkit-scrollbar-thumb:hover {
+    background: #000000;
+}
+
+.train-action-fold {
+    color: blue;
+}
+
+.train-action-call {
+    color: green;
+}
+
+.train-action-raise {
+    color: red;
+}
+
+.train-sequences {
+    display: flex;
+    flex-direction: row;
+    column-gap: 0.5ch;
+    border: 0.1rem solid black;
+    border-right: none;
+}
+
+.train-action-probs {
+    display: flex;
+    flex-direction: row;
+    column-gap: 0.5ch;
+    border: 0.1rem solid black;
+    border-left: none;
+}
+
+.train-action-probs-item {
+    display: flex;
+    flex-direction: row;
+}
+
+.train-ui-menu {
+    display: flex;
+    width: 100%;
+    justify-content: space-evenly;
+}
+
+.train-start-button {
+    font-size: 2em;
+    border: 0.3rem solid black;
+    min-width: max-content;
+    padding-inline: 2ch;
+}
+
+.train-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.train-label pre {
+    margin: 0;
+}
+
+.train-input {
+    font-size: 1.5em;
+    border: 0.3rem solid black;
+    min-width: 4ch;
+}

@@ -1,0 +1,104 @@
+﻿@using Blazor.Client.Fun
+@using Microsoft.FSharp.Core
+@using Action = Blazor.Client.Fun.Action
+
+<div class="game-ui border">
+    <div class="game-ui-background">
+        @(Background(Model.p1_id))
+        @(Background(Model.p0_id))
+    </div>
+    <div class="top">
+        <div class="top-left">
+            <div class="id-pot">
+                @Id(Model.p1_id)
+                @Pot(Model.p1_pot)
+            </div>
+        </div>
+        <div class="top-middle">
+            @Card(Model.p1_card)
+        </div>
+        <div class="top-right"/>
+    </div>
+
+    <div class="middle">
+        @Card(Model.community_card)
+        @PadderMiddle(1)
+        @Pot(Model.p0_pot + Model.p1_pot)
+    </div>
+
+    <div class="bottom">
+        <div class="bottom-left">
+            <div class="id-pot">
+                @Id(Model.p0_id)
+                @Pot(Model.p0_pot)
+            </div>
+        </div>
+        <div class="bottom-middle">
+            @Card(Model.p0_card)
+        </div>
+        <div class="bottom-right">
+            @Button(Action.Fold)
+            @Button(Action.Call)
+            @Button(Action.Raise)
+        </div>
+    </div>
+</div>
+
+@code {
+
+    // We're going at a snail's pace, but we've already done a decent bit.
+    // I am having trouble getting used to it right away, but we'll be slinging
+    // before we know it.
+
+    // Now we are runing into some weird error with the source generator.
+
+    [Parameter]
+    public required LeducModel Model { get; init; }
+
+    [Parameter]
+    public required AllowedActions AllowedActions { get; init; }
+
+    private RenderFragment Background(int id)
+    {
+        return @<p class="@(id == 0 ? "bg-red" : "bg-green")">
+                   @Constants.names[id]
+               </p>;
+    }
+
+    private RenderFragment Pot(int size)
+    {
+        return @<div class="pot-size"> @size </div>;
+    }
+
+    private RenderFragment Id(int id)
+    {
+        return @<div class="id"> @Constants.names[id] </div>;
+    }
+
+    private RenderFragment PadderMiddle(float x)
+    {
+        // Yeah, the css class does not exist.
+        return @<div class="middle-padder"
+                     style="flex-basis: @(x)em"/>;
+    }
+
+    // We need the Fsharp Core to use the Fsharp options.
+    private RenderFragment Card(FSharpOption<Card> x)
+    {
+        return @<div class="card">
+                   <strong>
+                       @Fun.GameUI.card(x)
+                   </strong>
+               </div>;
+    }
+
+    private RenderFragment Button(Action a)
+    {
+        // TODO: onclick
+        return @<div class="action"
+                     disabled="@(!AllowedActions.IsAllowed(a))">
+                   @a
+               </div>;
+    }
+
+}
