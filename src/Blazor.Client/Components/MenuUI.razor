@@ -1,0 +1,50 @@
+﻿@using static Blazor.Client.Fun
+@using static Blazor.Client.Fun.MsgClient
+
+<div class="menu-ui border">
+    @Select(1,Model.p1)
+    <button class="menu-button" @onclick="() => Dispatch(StartGame)">Start Game</button>
+    @Select(0,Model.p0)
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public required ClientModel Model { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public required Action<MsgClient> Dispatch { get; set; }
+
+    private static List<RenderFragment> Options(PlayerType def)
+    {
+        var x = new List<RenderFragment>();
+        foreach (var (k,v) in player_types)
+        {
+            x.Add(@<option class="player-select-option"
+                           value="@k"
+                           selected="@(def.Equals(v))">
+                      @k
+                  </option>);
+        }
+        return x;
+    }
+
+    private RenderFragment Select(int id, PlayerType def)
+    {
+        // This is probably the best way.
+        // We just don't have the properties we can bind to.
+
+        void OnChange(ChangeEventArgs args) => Dispatch(NewPlayerChange(id, player_types[args.Value!.ToString()!]));
+        return @<select class="player-select"
+                        @onchange="@OnChange">
+                   @foreach (var x in Options(def))
+                   {
+                       @x
+                   }
+               </select>;
+    }
+
+
+
+}

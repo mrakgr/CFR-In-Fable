@@ -1,0 +1,13 @@
+﻿@using static Blazor.Client.Fun
+
+<div class="message-ui border">
+    @foreach (var x in Model.message_list)
+    {
+        <p>@x</p>
+    }
+</div>
+
+@code {
+    [Parameter] [EditorRequired]
+    public required ClientModel Model { get; set; }
+}

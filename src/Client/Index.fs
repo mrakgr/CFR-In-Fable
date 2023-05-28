@@ -67,12 +67,6 @@ let init (learn_hub : Hub<MsgServerToClient,MsgClientToLearnServer>) () : Client
             ] |> Map
     }, Cmd.ofEffect (fun disp -> learn_hub.SetDispatch (FromServer >> disp))
 
-// This update function we will turn into a reducer later. We'll move it into the F# class library we just created.
-// Since I don't know how to create a reactive store for Blazor, we'll just use the Fluxor library.
-
-// It is similar to the Elmish loop, except it will be done using dependency injection.
-// Since it has union types, F# is a lot more suitable for writing reducers than C#.
-
 let update (learn_hub : Hub<MsgServerToClient,MsgClientToLearnServer>) msg (model : ClientModel) : ClientModel * Cmd<_> =
     try
         let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
@@ -292,6 +286,10 @@ module View =
                     Html.select [
                         prop.className "player-select"
                         menu_ui_select_children
+
+                        // This line here seems to be unecessary.
+                        // Since Blazor is well typed, I am getting proper support from the IDE
+                        // But in Fable, I didn't realize the problem at all.
                         prop.value (def.ToString())
                         prop.onChange (fun x ->  dispatch (PlayerChange(id,player_types[x])))
                     ]
@@ -338,6 +336,8 @@ module View =
 
     open Feliz.Recharts
 
+    // Ah, now this chart is next.
+    // ...We don't have anywhere to display it, so we'll leave it for last.
     let chart_template lines xAxisDataKey (data : _ list) =
         Recharts.responsiveContainer [
             responsiveContainer.width (length.perc 100)
@@ -397,6 +397,9 @@ module View =
         [<ReactComponent>]
         let view (data : float list) = chart_template lines None data
 
+    // Let's focus on the train and test parts of the UI.
+    // Let's just get on with this one.
+
     [<ReactMemoComponent>]
     let table is_train (model : CFRPlayerModel) =
         let model =
@@ -454,6 +457,9 @@ module View =
             ]
         ]
 
+    // Uf, another one of these...
+    // We must persevere. We must keep going forward!
+
     [<ReactComponent>]
     let training_ui_menu (cfr_select_value : string, training_run_iterations : string, training_iterations_left : uint, msg) (select_on_change : string -> _) start (iters_changed : string -> _) =
         Html.div [
@@ -471,6 +477,9 @@ module View =
                 ]
                 Html.select [
                     prop.className "train-cfr-player-type"
+                    // Weird that it works here without value being set.
+                    // Note: If the value attribute is not specified, the content will be passed as a value instead.
+                    // Hmmm, ok.
                     prop.children (Map.keys cfr_player_types |> Seq.map Html.option)
                     prop.value cfr_select_value
                     prop.onChange select_on_change
@@ -544,15 +553,5 @@ module View =
                     test_ui model dispatch
             ]
         ]
-
-// All of this...
-// And convert it into Blazor.
-
-// There is a flow to doing these kinds of rewrites.
-// First, you have to understand that doing a rewrite is not like the regular kind of programming.
-
-// You can't use your regular kind of thinking for this.
-// If you try for example...
-
 
 let view model dispatch = View.main model dispatch // Note: Since Fable 4, this function musn't be partially applied. Don't reduce the args.

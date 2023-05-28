@@ -239,6 +239,7 @@ body {
 }
 
 .id {
+    user-select: none;
     margin: 0.2em 0;
 }
 
