@@ -12,10 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Blazor.Client.Fun\Blazor.Client.Fun.fsproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Include="wwwroot\css\index.css" />
     </ItemGroup>
 

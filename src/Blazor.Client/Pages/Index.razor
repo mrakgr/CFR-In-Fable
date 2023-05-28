@@ -1,44 +1,13 @@
 ﻿@page "/"
 
 @using Blazor.Client.Components
-@using static Blazor.Client.Fun
 
-@inherits ViewComponent
-
-<Zxc/>
-<div class="ui">
-    @* <TrainUI Model="Model" Dispatch="Dispatch"/> *@
-    @* <TabsUI ActiveTab="Model.active_tab" *@
-    @*         Dispatch="Dispatch"/> *@
-    @* @if (Model.active_tab.IsGame) *@
-    @* { *@
-    @*     <MenuGameUI Model="Model" *@
-    @*                 Dispatch="Dispatch"/> *@
-    @*     <MessageUI Model="Model"/> *@
-    @* } *@
-    @* else if (Model.active_tab.IsTrain) *@
-    @* { *@
-    @*     <TrainUI Model="Model" Dispatch="Dispatch"/> *@
-    @* } *@
-    @* else if (Model.active_tab.IsTest) *@
-    @* { *@
-    @*     <TestUI Model="Model" Dispatch="Dispatch"/> *@
-    @* } *@
-    @* else *@
-    @* { *@
-    @*     throw new Exception("Missing case in tabs."); *@
-    @* } *@
-</div>
+<TrainUI/>
+asd
+zxc
+qwew
 
 @code
 {
-    // This should be it. Let's take a look at it.
-
-    // Now it does full rebuild even if only C# parts are changed. Before it worked fine.
-
-    // Damn, I thought that is how it was supposed to be usually.
-    // I didn't realize that the F# project rebuilds are due to a bug.
-    // I thought it was simply lacking that feature!
-
 
 }
