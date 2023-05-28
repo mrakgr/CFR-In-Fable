@@ -1,35 +1,55 @@
 ﻿@using ApexCharts;
 
-<ApexChart TItem="Order"
-           Title="Order Net Value">
-
-    <ApexPointSeries TItem="Order"
-                     Items="Orders"
-                     Name="Gross Value"
-                     SeriesType="SeriesType.Line"
-                     XValue="@(e => e.Country)"
-                     YAggregate="@(e => e.Sum(e => e.GrossValue))"
-                     OrderByDescending="e=>e.Y" />
-
-    <ApexPointSeries TItem="Order"
-                     Items="Orders"
-                     Name="Net Value"
-                     SeriesType="SeriesType.Line"
-                     XValue="@(e => e.Country)"
-                     YAggregate="@(e => e.Sum(e => e.NetValue))"
-                     OrderByDescending="e=>e.Y" />
-</ApexChart>
+@* <ApexChart TItem="Order" *@
+@*            Title="Order Net Value"> *@
+@* *@
+@*     <ApexPointSeries TItem="Order" *@
+@*                      Items="Orders" *@
+@*                      Name="Gross Value" *@
+@*                      SeriesType="SeriesType.Line" *@
+@*                      XValue="@(e => e.Country)" *@
+@*                      YAggregate="@(e => e.Sum(e => e.GrossValue))" *@
+@*                      OrderByDescending="e=>e.Y" /> *@
+@* *@
+@*     <ApexPointSeries TItem="Order" *@
+@*                      Items="Orders" *@
+@*                      Name="Net Value" *@
+@*                      SeriesType="SeriesType.Line" *@
+@*                      XValue="@(e => e.Country)" *@
+@*                      YAggregate="@(e => e.Sum(e => e.NetValue))" *@
+@*                      OrderByDescending="e=>e.Y" /> *@
+@* </ApexChart> *@
 
 @code {
 
-    // Sigh, I am too tired to deal with this right now.
-    // We'll finish this tomorrow.
+    // I'll do a bit extra today.
+    // I got some good advice in the thread I linked to.
 
-    // If it weren't for the inheritance bug, we'd have gotten
-    // at least the charts done today.
+    // It seems with .NET 8 preview 3, the problems go away so we'll try that.
 
-    // We'll bring it in tomorrow as well as make the game run.
-    // Time to rest.
+    // ...
+    // ...
     // ...
 
+    // Let me just show you the commit changes.
+
+    // Anyway, as you could see, I changed the SDK to 8.0.
+    // I got 8.0.100-preview.3.23178.7
+    // ...that you can see in the terminal. We've already determined that preview 4 is broken previously, so preview 3 is the one you need.
+    // After that I also got the specific packages of
+
+    // <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0-preview.3.23177.8" />
+    // <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0-preview.3.23177.8" PrivateAssets="all" />
+    // <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.0-preview.3.23177.8" />
+
+    // We'll what you can see here. One other option is to downgrade to .NET 7.0.202.
+    // We'll go with the preview version for now.
+    // My, what a mess this was.
+
+    // We'll continue this properly tomorrow. I am glad I got at least this resolved.
+    // If you are trying out Blazor at this point in time, aren't you glad you got this far?
+
+    // ...
+    // ...
+    // ...
 }
