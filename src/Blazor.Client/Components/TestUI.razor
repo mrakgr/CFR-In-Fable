@@ -1,0 +1,46 @@
+﻿@using static Blazor.Client.Fun
+
+@inherits TrainUI_Menu
+
+<div class="train-ui border">
+
+    @* @Menu() *@
+    <div class="train-chart border">
+        The chart should go here.
+    </div>
+    @* <TableUI Model="M.testing_model" *@
+    @*          IsTrain="false"/> *@
+</div>
+
+@code {
+    // TODO: Don't forget the chart.
+
+    // As you can see, there is nothing in the train and test tabs now.
+    // But if I try using a compnent that does not derive from ComponentBase, but from
+    // another component I get this warming.
+
+    // And it it not kidding around.
+    // Sigh, what am I supposed to think here?
+
+    // That Blazor does not support inherited components?
+    // That can't be it.
+
+    // Also why is it complaining that it can't open the F# project?
+    // Let me pause.
+    // ...
+
+
+    // private RenderFragment Menu()
+    // {
+    //     var m = M;
+    //     return CreateMenu(
+    //         Model.active_cfr_player,
+    //         m.testing_run_iterations,
+    //         m.testing_iterations_left,
+    //         "Testing",
+    //         (x => Dispatch(MsgClient.NewCFRPlayerSelected(x.Value!.ToString()))),
+    //         (_ => Dispatch(MsgClient.TestingStartClicked)),
+    //         (x => Dispatch(MsgClient.NewTestingInputIterationsChanged(x.Value!.ToString())))
+    //         );
+    // }
+}
