@@ -8,7 +8,12 @@ type StatefulComponent<'TModel,'TAction>(initModel) =
 
     member val Model = initModel with get, set
     abstract member Update : msg: 'TAction -> 'TModel
-    member this.Dispatch(msg) = this.Model <- this.Update msg
+    member this.Dispatch(msg) =
+        this.Model <- this.Update msg
+        this.StateHasChanged()
+
+        // Let's give it a try.
+
 
 type Action = Fold | Call | Raise
 
@@ -164,9 +169,6 @@ type ViewComponent() =
 
     override this.Update(msg) =
         let model = this.Model
-        // We'll redo this whole thing later, for now let's get rid of the bridge sends.
-        // I do not want to spend too much time thinking about this right now.
-        // We'll come back to it after we finish scaffolding the UI.
 
         let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
             let m = f model.cfr_players[active_cfr_player]
