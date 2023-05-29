@@ -16,7 +16,7 @@ type ViewComponent() as this =
                 while true do
                     let! msg = mb.Receive()
                     model <- update msg model mb.Post
-                }) // Removing the cancellation token makes it work.
+                },cancellation_token) // Removing the cancellation token makes it work.
         mb.Start()
         mb
         
