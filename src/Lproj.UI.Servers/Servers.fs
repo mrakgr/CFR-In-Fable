@@ -39,16 +39,7 @@ module Servers =
                 new MailboxProcessor<_>(fun mb -> async {
                     let mutable model = init
                     while true do
-                        printfn "qwe"
-                        // So it is not receiving any messages for some reason?
                         let! msg = mb.Receive()
-                        // ...
-                        // I have no idea.
-                        // Is this some kind .NET compiler bug?
-                        // Could that possibly be it?
-                        // ...
-                        // Pause.
-                        printfn "asd"
                         model <- update msg model mb.Post
                     },cancellation_token)
             mb.Start()
@@ -79,8 +70,20 @@ module Servers =
                         | PLM_CFR (ModelMC(x,_)) -> LeducActionCFR(Dictionary x)
                     game dispatch (f p0,f p1)
                     model
+                | FromClient(TestMessage s) ->
+                    printfn "Got: %s" s
+                    model
 
-            mb PlayServerModel.Init update
+            // mb PlayServerModel.Init update
+            let mb =
+                new MailboxProcessor<_>(fun mb -> async {
+                    let mutable model = PlayServerModel.Init
+                    while true do
+                        let! msg = mb.Receive()
+                        model <- update msg model mb.Post
+                    },cancellation_token)
+            mb.Start()
+            mb
 
         let server_learn =
             let dispatch_client = FromServer >> this.Dispatch
@@ -90,7 +93,7 @@ module Servers =
                 match msg with
                 | Train (num_iters, pl) ->
                     let train_template f =
-                        try
+                        try // TODO: Remove this try catch.
                             let mutable num_iters = num_iters
                             while num_iters > 0u do
                                 cancellation_token.ThrowIfCancellationRequested()
@@ -148,20 +151,33 @@ module Servers =
                 let m = f model.cfr_players[active_cfr_player]
                 {model with cfr_players=Map.add active_cfr_player m model.cfr_players}
             let inline update f = update' model.active_cfr_player f
+
+            // This makes zero sense to me.
+            // I guess I won't be finishing this rewrite today.
+            // Let me pausse here.
+            // ...
+            // ...
+            server_play.Post(FromClient(TestMessage "123"))
+            server_play.Post(FromClient(TestMessage "345"))
+            server_play.Post(FromClient(TestMessage "678"))
+            server_play.Post(FromClient(TestMessage "890"))
+
             match msg with
             | ClickedOn x ->
                 server_play.Post(FromClient (SrvSelectedAction x))
                 {model with allowed_actions=AllowedActions.Default}
             | StartGame ->
                 printfn "Start game."
-                let get_model = function
-                    | Human -> PLM_Human
-                    | Random -> PLM_Random
-                    | CFR x -> PLM_CFR model.cfr_players[x].training_model
-                server_play.Post(FromClient (SrvStartGame(get_model model.p0, get_model model.p1)))
+
+                // let get_model = function
+                //     | Human -> PLM_Human
+                //     | Random -> PLM_Random
+                //     | CFR x -> PLM_CFR model.cfr_players[x].training_model
+                // server_play.Post(FromClient (SrvStartGame(get_model model.p0, get_model model.p1)))
+
+                // Not from here.
+                server_play.Post(FromClient(TestMessage "xxx"))
                 printfn "Posted the Start Game message."
-                // I have no idea what the problem is.
-                // Nothing is coming to mind.
                 model
             | PlayerChange(id, pl) ->
                 let model =
@@ -203,5 +219,7 @@ module Servers =
                     {m with testing_model=x}
 
         interface IDisposable with
-            member _.Dispose() = token_source.Dispose(); server_learn.Dispose(); server_play.Dispose()
+            member _.Dispose() =
+                printfn "Disposing."
+                token_source.Dispose(); server_learn.Dispose(); server_play.Dispose()
 

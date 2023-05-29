@@ -146,6 +146,7 @@ type MsgServerToClient =
 type MsgClientToPlayServer =
     | SrvSelectedAction of Action
     | SrvStartGame of p0: PlayerModel * p1: PlayerModel
+    | TestMessage of string
 
 type MsgClientToLearnServer =
     | Train of num_iter: uint * pl: CFRPlayerModel
