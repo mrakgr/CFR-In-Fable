@@ -3,7 +3,7 @@
 open System.Threading
 open Microsoft.AspNetCore.Components
 
-type ViewComponent() =
+type ViewComponent() as this =
     inherit ComponentBase()
     
     let token_source = new CancellationTokenSource()
@@ -16,12 +16,13 @@ type ViewComponent() =
                 while true do
                     let! msg = mb.Receive()
                     model <- update msg model mb.Post
-                },cancellation_token) // Removing the cancellation token makes it work.
+                }) // Removing the cancellation token makes it work.
         mb.Start()
         mb
         
     let srv = mb () (fun x () _ -> printfn "%s" x)
     
     do srv.Post("Hello from view")
+    do this.Say("123456789")
     
     member _.Say(x) = srv.Post x
