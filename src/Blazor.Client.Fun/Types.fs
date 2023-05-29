@@ -153,6 +153,29 @@ module Fun =
                     ] |> Map
             }
 
+    type MsgServerToClient =
+        | GameState of LeducModel * string list * AllowedActions
+        | TrainingResult of CFRPlayerType * (float * float)
+        | TrainingModel of CFRPlayerType * CFRPlayerModel
+        | TestingResult of CFRPlayerType * float
+        | TestingModel of CFRPlayerType * CFRPlayerModel
+
+    type MsgClientToPlayServer =
+        | SelectedAction of Action
+        | StartGame of p0: PlayerModel * p1: PlayerModel
+
+    type MsgClientToLearnServer =
+        | Train of num_iter: uint * pl: CFRPlayerModel
+        | Test of num_iter: uint * pl: CFRPlayerModel
+
+    type MsgLeduc =
+        | Action of LeducModel * string list * AllowedActions * (Action -> unit)
+        | Terminal of LeducModel * string list
+
+    type MsgPlayServer =
+        | FromLeducGame of MsgLeduc
+        | FromClient of MsgClientToPlayServer
+
     type MsgClient =
         | ClickedOn of act: Action
         | StartGame
@@ -163,32 +186,36 @@ module Fun =
         | TestingStartClicked
         | TrainingInputIterationsChanged of string
         | TestingInputIterationsChanged of string
-        // TODO: We'll put the message from server in later.
+        | FromServer of msg: MsgServerToClient
 
     type ViewComponent() =
         inherit StatefulComponent<ClientModel,MsgClient>(ClientModel.Default)
 
-        // let backend = new MailboxProcessor<_>(fun mb -> async {
-        //     failwith "TODO"
-        // })
+        let server_play = new MailboxProcessor<_>(fun mb -> async {
+            failwith "TODO"
+        })
+
+        let server_learn = new MailboxProcessor<_>(fun mb -> async {
+            failwith "TODO"
+        })
 
         override this.Update(msg) =
             let model = this.Model
-
-            // Smooth.
-            //
 
             let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
                 let m = f model.cfr_players[active_cfr_player]
                 {model with cfr_players=Map.add active_cfr_player m model.cfr_players}
             let inline update f = update' model.active_cfr_player f
             match msg with
-            | ClickedOn x -> {model with allowed_actions=AllowedActions.Default}
+            | ClickedOn x ->
+                server_play.Post(FromClient (SelectedAction x))
+                {model with allowed_actions=AllowedActions.Default}
             | StartGame ->
                 let get_model = function
                     | Human -> PLM_Human
                     | Random -> PLM_Random
                     | CFR x -> PLM_CFR model.cfr_players[x].training_model
+                server_play.Post(FromClient (MsgClientToPlayServer.StartGame(get_model model.p0, get_model model.p1)))
                 model
             | PlayerChange(id, pl) ->
                 let model =
@@ -202,18 +229,32 @@ module Fun =
             | TrainingStartClicked ->
                 update <| fun m ->
                     let iter = uint m.training_run_iterations
+                    server_learn.Post (MsgClientToLearnServer.Train (iter, m.training_model))
                     {m with training_iterations_left=m.training_iterations_left + iter}
             | TestingStartClicked ->
                 update <| fun m ->
                     let iter = uint m.testing_run_iterations
+                    server_learn.Post (MsgClientToLearnServer.Test (iter, m.training_model))
                     {m with testing_iterations_left=m.testing_iterations_left+iter; testing_results=[]; testing_model=init_player_model model.active_cfr_player}
             | TrainingInputIterationsChanged s -> update <| fun m -> {m with training_run_iterations = s}
             | TestingInputIterationsChanged s -> update <| fun m -> {m with testing_run_iterations=s}
             | CFRPlayerSelected s -> {model with active_cfr_player=cfr_player_types[s]}
-
-    type MsgLeduc =
-        | Action of LeducModel * string list * AllowedActions * (Action -> unit)
-        | Terminal of LeducModel * string list
+            | FromServer (GameState(leduc_model, message_list, allowed_actions)) ->
+                {model with leduc_model=leduc_model; message_list=message_list; allowed_actions=allowed_actions}
+            | FromServer (TrainingResult(pl,(a,b))) ->
+                update' pl <| fun m ->
+                    let mutable i = 150
+                    let x = (m.training_iterations,(a,b)) :: m.training_results |> List.takeWhile (fun _ -> if i > 0 then i <- i-1; true else false)
+                    {m with training_results=x; training_iterations_left=m.training_iterations_left-1u; training_iterations=m.training_iterations+1}
+            | FromServer (TestingResult(pl,x)) ->
+                update' pl <| fun m ->
+                    {m with testing_results=x :: m.testing_results; testing_iterations_left=m.testing_iterations_left-1u}
+            | FromServer (TrainingModel (a,x)) ->
+                update' a <| fun m ->
+                    {m with training_model=x}
+            | FromServer (TestingModel (a,x)) ->
+                update' a <| fun m ->
+                    {m with testing_model=x}
 
     let names = [| "Larry"; "Tom" |]
 
