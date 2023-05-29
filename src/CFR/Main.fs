@@ -5,6 +5,12 @@ open System.Collections.Generic
 open Blazor.Client.Fun
 
 // Let me commit here.
+// Actually, we'll leave them in...
+
+// Damn it, now Paket is acting like a pest and I can't get rid of it.
+// Let me pause the video and I'll wrench it out in peace.
+// ...
+// ...
 
 type PathProbs = float * float * float
 type IAction<'model,'action> =
