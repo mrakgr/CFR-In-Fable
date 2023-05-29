@@ -6,15 +6,13 @@
 
     @Menu()
     <div class="train-chart border">
-        The chart should go here.
+        <ChartUI/>
     </div>
     <TableUI Model="M.testing_model"
              IsTrain="false"/>
 </div>
 
 @code {
-    // TODO: Don't forget the chart.
-
     private RenderFragment Menu()
     {
         var m = M;

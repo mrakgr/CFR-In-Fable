@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Leduc</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
@@ -12,9 +12,8 @@
     <Compile Include="Play.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Blazor.Client.Fun\Blazor.Client.Fun.fsproj" />
     <ProjectReference Include="..\..\CFR\CFR.fsproj" />
-    <ProjectReference Include="..\..\Shared\Shared.fsproj" />
     <ProjectReference Include="..\Utils\Utils.fsproj" />
   </ItemGroup>
-  <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>

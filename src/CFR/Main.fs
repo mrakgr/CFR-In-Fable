@@ -2,8 +2,9 @@
 
 open System
 open System.Collections.Generic
-open Shared.Utils.CFR
-open Shared.Leduc.Types.CFR
+open Blazor.Client.Fun
+
+// Let me commit here.
 
 type PathProbs = float * float * float
 type IAction<'model,'action> =

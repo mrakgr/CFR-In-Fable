@@ -1,55 +1,41 @@
 ﻿@using ApexCharts;
 
-@* <ApexChart TItem="Order" *@
-@*            Title="Order Net Value"> *@
-@* *@
-@*     <ApexPointSeries TItem="Order" *@
-@*                      Items="Orders" *@
-@*                      Name="Gross Value" *@
-@*                      SeriesType="SeriesType.Line" *@
-@*                      XValue="@(e => e.Country)" *@
-@*                      YAggregate="@(e => e.Sum(e => e.GrossValue))" *@
-@*                      OrderByDescending="e=>e.Y" /> *@
-@* *@
-@*     <ApexPointSeries TItem="Order" *@
-@*                      Items="Orders" *@
-@*                      Name="Net Value" *@
-@*                      SeriesType="SeriesType.Line" *@
-@*                      XValue="@(e => e.Country)" *@
-@*                      YAggregate="@(e => e.Sum(e => e.NetValue))" *@
-@*                      OrderByDescending="e=>e.Y" /> *@
-@* </ApexChart> *@
+@using static FunUtils
+
+<ApexChart TItem="TestData"
+           Title="Order Net Value"
+           Width="ContainerFit"
+           Height="ContainerFit">
+
+    <ApexPointSeries TItem="TestData"
+                     Items="_data"
+                     Name="Max Value"
+                     SeriesType="SeriesType.Line"
+                     XValue="@(e => e.iteration)"
+                     YAggregate="@(e => e.Max(x => (decimal)x.value))"
+                     OrderBy="e => e.X"/>
+
+    <ApexPointSeries TItem="TestData"
+                     Items="_data"
+                     Name="Min Value"
+                     SeriesType="SeriesType.Line"
+                     XValue="@(e => e.iteration)"
+                     YAggregate="@(e => e.Min(x => (decimal)x.value))"
+                     OrderBy="e => e.X"/>
+
+</ApexChart>
 
 @code {
+    // Great!
+    // Let's plug this chart into the other page.
 
-    // I'll do a bit extra today.
-    // I got some good advice in the thread I linked to.
+    // Not bad. With this we are done with the UI mostly.
+    // We'll plug the relevant data into the chart, once we integrate the frontend with the backend.
 
-    // It seems with .NET 8 preview 3, the problems go away so we'll try that.
-
+    // Let me think...
     // ...
     // ...
-    // ...
 
-    // Let me just show you the commit changes.
-
-    // Anyway, as you could see, I changed the SDK to 8.0.
-    // I got 8.0.100-preview.3.23178.7
-    // ...that you can see in the terminal. We've already determined that preview 4 is broken previously, so preview 3 is the one you need.
-    // After that I also got the specific packages of
-
-    // <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0-preview.3.23177.8" />
-    // <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0-preview.3.23177.8" PrivateAssets="all" />
-    // <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.0-preview.3.23177.8" />
-
-    // We'll what you can see here. One other option is to downgrade to .NET 7.0.202.
-    // We'll go with the preview version for now.
-    // My, what a mess this was.
-
-    // We'll continue this properly tomorrow. I am glad I got at least this resolved.
-    // If you are trying out Blazor at this point in time, aren't you glad you got this far?
-
-    // ...
-    // ...
-    // ...
+    TestData[] _data = chart_data(10);
+    static readonly string ContainerFit = "100%";
 }
