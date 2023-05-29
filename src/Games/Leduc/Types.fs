@@ -1,6 +1,6 @@
 ﻿module Leduc.Types
 
-open Shared.Leduc.Types
+open Blazor.Client.Fun
 
 type ILeducGame<'r> =
     abstract member chance_init : id: int * cont: (Card -> 'r) -> 'r

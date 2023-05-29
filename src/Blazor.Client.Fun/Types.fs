@@ -175,14 +175,8 @@ module Fun =
         override this.Update(msg) =
             let model = this.Model
 
-            // After we are done with that rewrite, we'll make the backend a mailbox processor
-            // in this class.
-            // Easy peasy.
-
-            // We're really cramming all the types in this project which does not make me comfortable.
-            // It is disorganized, but it is fine.
-            // Who is going to juggle various modules and namespaces otherwise?
-            // It is better to cram than juggle.
+            // Smooth.
+            //
 
             let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
                 let m = f model.cfr_players[active_cfr_player]

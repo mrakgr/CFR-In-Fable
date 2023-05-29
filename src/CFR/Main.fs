@@ -4,14 +4,6 @@ open System
 open System.Collections.Generic
 open Blazor.Client.Fun
 
-// Let me commit here.
-// Actually, we'll leave them in...
-
-// Damn it, now Paket is acting like a pest and I can't get rid of it.
-// Let me pause the video and I'll wrench it out in peace.
-// ...
-// ...
-
 type PathProbs = float * float * float
 type IAction<'model,'action> =
     abstract member action : model: 'model * actions: 'action [] * path_prob: PathProbs * cont: ('action * PathProbs -> float) -> float
@@ -80,7 +72,7 @@ module Enumerative =
         actions[i], prob
 
     type AgentPassiveSample<'model,'action when 'model: equality>(d : PolicyDictionary<'model,'action>, use_current_policy) =
-        let rng = Random()
+        let rng = System.Random()
 
         interface IAction<'model,'action> with
             member this.action(model, actions, path_prob, cont) =
@@ -97,7 +89,7 @@ module Sampling =
     open Enumerative
 
     type AgentActiveSample<'model,'action when 'model: equality>(d : PolicyDictionary<'model,'action>, d' : ValueDictionary<'model>) =
-        let rng = Random()
+        let rng = System.Random()
 
         let get_values' model actions =
             match d'.TryGetValue model with

@@ -10,5 +10,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Blazor.Client.Fun\Blazor.Client.Fun.fsproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
