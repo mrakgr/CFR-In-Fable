@@ -3,7 +3,7 @@ open System.Collections.Generic
 open CFR
 open CFR.Enumerative
 open Leduc.Learn
-open Blazor.Client.Fun
+open Lproj.Types
 open Leduc.Types
 open Leduc.Game
 

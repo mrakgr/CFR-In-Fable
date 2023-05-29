@@ -13,7 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Blazor.Client.Fun\Blazor.Client.Fun.fsproj" />
+      <ProjectReference Include="..\Lproj.UI.Servers\Lproj.UI.Servers.fsproj" />
+      <ProjectReference Include="..\Lproj.Types\Lproj.Types.fsproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,7 +1,7 @@
 ﻿module Leduc.Learn
 
 open CFR
-open Blazor.Client.Fun
+open Lproj.Types
 open Leduc.Types
 open Leduc.Game
 

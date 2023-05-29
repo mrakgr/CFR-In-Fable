@@ -10,8 +10,5 @@
         <Compile Include="Utils.fs" />
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.0-preview.3.23177.8" />
-    </ItemGroup>
 
 </Project>

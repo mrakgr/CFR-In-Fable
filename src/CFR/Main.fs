@@ -2,7 +2,7 @@
 
 open System
 open System.Collections.Generic
-open Blazor.Client.Fun
+open Lproj.Types
 
 type PathProbs = float * float * float
 type IAction<'model,'action> =

@@ -1,6 +1,6 @@
 ﻿module Leduc.Game
 
-open Blazor.Client.Fun
+open Lproj.Types
 open Leduc.Types
 
 let compare_hands (community_card : Card) (p0 : Player, p1 : Player) =

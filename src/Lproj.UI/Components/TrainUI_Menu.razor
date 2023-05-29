@@ -1,8 +1,10 @@
-﻿@using static Blazor.Client.Fun
+﻿@using static Lproj.Types
 
 <!--suppress SpellCheckingInspection -->
 
 @code {
+    public static readonly string ContainerFit = "100%";
+
     [Parameter] [EditorRequired]
     public required ClientModel Model { get; set; }
 

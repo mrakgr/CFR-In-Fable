@@ -12,7 +12,7 @@
     <Compile Include="Play.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Blazor.Client.Fun\Blazor.Client.Fun.fsproj" />
+    <ProjectReference Include="..\..\Lproj.Types\Lproj.Types.fsproj" />
     <ProjectReference Include="..\..\CFR\CFR.fsproj" />
     <ProjectReference Include="..\Utils\Utils.fsproj" />
   </ItemGroup>

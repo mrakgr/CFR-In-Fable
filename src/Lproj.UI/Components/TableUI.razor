@@ -1,4 +1,4 @@
-﻿@using static Blazor.Client.Fun
+﻿@using static Lproj.Types
 @using Microsoft.FSharp.Core
 
 <!--suppress SpellCheckingInspection -->
@@ -11,11 +11,11 @@
             @foreach (var el in k)
             {
                 // Hopefully it won't just toss the render fragments here away.
-                if (el is FSharpChoice<Fun.Action, Card>.Choice1Of2 act)
+                if (el is FSharpChoice<Types.Action, Card>.Choice1Of2 act)
                 {
                     ModelAction(act.Item);
                 }
-                else if (el is FSharpChoice<Fun.Action, Card>.Choice2Of2 card)
+                else if (el is FSharpChoice<Types.Action, Card>.Choice2Of2 card)
                 {
                     <div class="train-card">
                         @card.Item.ToString()
@@ -51,7 +51,7 @@
     [EditorRequired]
     public required bool IsTrain { get; set; }
 
-    RenderFragment ModelAction(Fun.Action act)
+    RenderFragment ModelAction(Types.Action act)
     {
         // I am really tempted to copy paste this.
         return @<div class="@css_train_action(act)">

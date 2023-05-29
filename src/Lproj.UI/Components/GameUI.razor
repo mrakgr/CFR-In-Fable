@@ -1,6 +1,6 @@
-﻿@using static Fun
-@using static Fun.Action
-@using static Fun.AllowedActions
+﻿@using static Types
+@using static Types.Action
+@using static Types.AllowedActions
 @using Microsoft.FSharp.Core
 
 <div class="game-ui border">
@@ -89,7 +89,7 @@
                </div>;
     }
 
-    private RenderFragment Button(Fun.Action a)
+    private RenderFragment Button(Types.Action a)
     {
         return @<button class="action"
                      disabled="@(!IsAllowed(AllowedActions, a))"
