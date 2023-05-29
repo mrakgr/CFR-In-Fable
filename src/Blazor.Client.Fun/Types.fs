@@ -1,5 +1,8 @@
 ﻿namespace Blazor.Client
 
+open System
+open System.Threading
+
 module Fun =
     open Microsoft.AspNetCore.Components
 
@@ -191,16 +194,29 @@ module Fun =
     type ViewComponent() =
         inherit StatefulComponent<ClientModel,MsgClient>(ClientModel.Default)
 
+        let token_source = new CancellationTokenSource()
         let server_play = new MailboxProcessor<_>(fun mb -> async {
             failwith "TODO"
-        })
+        },token_source.Token)
 
         let server_learn = new MailboxProcessor<_>(fun mb -> async {
             failwith "TODO"
-        })
+        },token_source.Token)
 
         override this.Update(msg) =
             let model = this.Model
+
+            // Now what is next?
+            // ...
+
+            // Let's implement the disposable interface for the mailboxes.
+            // I think this should be enough for the component to be disposed on its own.
+            // Let me check.
+
+            // Yeah, this should be fine. But we'll also be passing cancellation tokens...
+            // Maybe I'll reuse this code as a minigame on some other site, so it is good to do this.
+
+            // With that out of the way, we can just plug all the code that we need...
 
             let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
                 let m = f model.cfr_players[active_cfr_player]
@@ -255,6 +271,9 @@ module Fun =
             | FromServer (TestingModel (a,x)) ->
                 update' a <| fun m ->
                     {m with testing_model=x}
+
+        interface IDisposable with
+            member _.Dispose() = token_source.Dispose(); server_learn.Dispose(); server_play.Dispose()
 
     let names = [| "Larry"; "Tom" |]
 
