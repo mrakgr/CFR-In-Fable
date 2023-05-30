@@ -1,0 +1,33 @@
+﻿@page "/"
+
+@using Lproj.UI.Components
+
+@inherits Servers.ViewComponent
+
+<div class="ui">
+    <TabsUI ActiveTab="Model.active_tab"
+            Dispatch="Dispatch"/>
+    @if (Model.active_tab.IsGame)
+    {
+        <MenuGameUI Model="Model"
+                    Dispatch="Dispatch"/>
+        <MessageUI Model="Model"/>
+    }
+    else if (Model.active_tab.IsTrain)
+    {
+        <TrainUI Model="Model" Dispatch="Dispatch"/>
+    }
+    else if (Model.active_tab.IsTest)
+    {
+        <TestUI Model="Model" Dispatch="Dispatch"/>
+    }
+    else
+    {
+        throw new Exception("Missing case in tabs.");
+    }
+</div>
+
+@code
+{
+
+}

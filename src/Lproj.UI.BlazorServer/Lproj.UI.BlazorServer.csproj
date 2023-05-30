@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Components\GameUI.razor" />
+      <AdditionalFiles Include="Components\MenuGameUI.razor" />
+      <AdditionalFiles Include="Components\MenuUI.razor" />
+      <AdditionalFiles Include="Components\MessageUI.razor" />
+      <AdditionalFiles Include="Components\TableUI.razor" />
+      <AdditionalFiles Include="Components\TabsUI.razor" />
+      <AdditionalFiles Include="Components\TestUI.razor" />
+      <AdditionalFiles Include="Components\TrainUI.razor" />
+      <AdditionalFiles Include="Components\TrainUI_Menu.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Blazor-ApexCharts" Version="0.9.21-beta" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Lproj.UI.Servers\Lproj.UI.Servers.fsproj" />
+        <ProjectReference Include="..\Lproj.Types\Lproj.Types.fsproj" />
+    </ItemGroup>
+
+</Project>

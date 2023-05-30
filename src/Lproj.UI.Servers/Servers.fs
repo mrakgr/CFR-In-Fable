@@ -134,6 +134,17 @@ module Servers =
                         /// Isn't there Blazor Unified in .NET 8? Would it be possible to just use that instead of changing my entire project from WASM to Web?
                         /// ...
                         /// ...
+                        ///
+                        /// It is a prototype, forget it.
+                        /// Let's just dig in and get cracking.
+                        /// We have two choices right now...either to put the stuff in the Lproj.UI into EmptyBlazorApp1, or the other way around.
+                        /// We'll do the former, as it will allow us to just copy the components straightforwardly.
+                        ///
+                        /// This is a good opportunity to learn some MVC, we hate it and never looked at it, but since we are aiming for .NET web
+                        /// expertise, it is something we should get intimate with.
+                        ///
+                        /// Maybe in the future all this won't be necessary, but for now, we'll roll.
+                        /// We'll go with vanilla.
 
 
                         let mutable num_iters = num_iters

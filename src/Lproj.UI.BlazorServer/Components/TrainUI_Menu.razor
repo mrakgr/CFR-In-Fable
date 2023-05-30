@@ -1,0 +1,48 @@
+﻿@using static Lproj.Types
+
+<!--suppress SpellCheckingInspection -->
+
+@code {
+    public static readonly string ContainerFit = "100%";
+
+    [Parameter] [EditorRequired]
+    public required ClientModel Model { get; set; }
+
+    [Parameter] [EditorRequired]
+    public required Action<MsgClient> Dispatch { get; set; }
+
+    protected UICFRPlayerModel M => Model.cfr_players[Model.active_cfr_player];
+
+    protected RenderFragment CreateMenu(
+        CFRPlayerType cfrSelectValue, string trainingRunIterations, uint trainingIterationsLeft,
+        string msg, Action<ChangeEventArgs> selectOnChange, Action<MouseEventArgs> start, Action<ChangeEventArgs> itersChanged)
+    {
+        var isInputValid = UInt32.TryParse(trainingRunIterations, out _);
+        return @<div class="train-ui-menu">
+                   <button class="train-start-button"
+                           @onclick="start"
+                           disabled="@(!isInputValid)">
+                       @(0 < trainingIterationsLeft ?
+                           $"{msg} In Progress: {trainingIterationsLeft} left..." :
+                           $"Click To Begin {msg}")
+                   </button>
+                   <select class="train-cfr-player-type"
+                           @onchange="selectOnChange">
+                       @foreach (var (k,v) in cfr_player_types)
+                       {
+                           <option value="@k"
+                                   selected="@(v.Equals(cfrSelectValue))">
+                               @k
+                           </option>
+                       }
+                   </select>
+                   <div class="train-label">
+                       <pre>Number Of Iterations:  </pre>
+                       <input class="train-input"
+                              value="@trainingRunIterations"
+                              style="@(isInputValid ? "" : "color: red")"
+                              @onchange="itersChanged"/>
+                   </div>
+               </div>;
+    }
+}

@@ -1,0 +1,27 @@
+﻿@using static Lproj.Types
+@using static Types.Tabs
+
+<div class="tabs-ui border">
+    @Tab(Game)
+    @Tab(Train)
+    @Tab(Test)
+</div>
+
+@code {
+    [Parameter] [EditorRequired]
+    public required Tabs ActiveTab { get; set; }
+
+    [Parameter] [EditorRequired]
+    public required Action<MsgClient> Dispatch { get; set; }
+
+    private RenderFragment Tab(Tabs x)
+    {
+        // It is great that it warned me about this. I thought that == had the same behavior as in F#.
+        return @<button class="tab @(ActiveTab.Equals(x) ? "active-tab" : "inactive-tab")"
+                        @onclick="() => Dispatch(MsgClient.NewTabClicked(x))">
+                   @x.ToString()
+               </button>;
+    }
+
+
+}
