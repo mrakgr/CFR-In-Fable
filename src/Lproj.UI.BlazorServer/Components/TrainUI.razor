@@ -6,17 +6,25 @@
 
 <div class="train-ui border">
     @Menu()
-    <div class="train-chart border">
-        <ApexChart TItem="TData" Width="ContainerFit" Height="ContainerFit">
-            @Series("Self Play Reward In First Position", e => (decimal)e.Item2.Item1)
-            @Series("Self Play Reward In Last Position", e => (decimal)e.Item2.Item2)
-        </ApexChart>
-    </div>
+    @* <div class="train-chart border"> *@
+    @*     <ApexChart TItem="TData" Width="ContainerFit" Height="ContainerFit"> *@
+    @*         @Series("Self Play Reward In First Position", e => (decimal)e.Item2.Item1) *@
+    @*         @Series("Self Play Reward In Last Position", e => (decimal)e.Item2.Item2) *@
+    @*     </ApexChart> *@
+    @* </div> *@
     <TableUI Model="M.training_model"
              IsTrain="true"/>
 </div>
 
 @code {
+    // So the table is messing up the UI. It seems it really hates the updates after it gets filled.
+    // What about when we only have the chart?
+
+    // The chart is not updating.
+    // Let's forget the chart for the time being.
+
+    // We need to understand what is going on with the table.
+
     RenderFragment Series(string name, Func<TData,decimal?> yValue)
     {
         return @<ApexPointSeries TItem="TData"

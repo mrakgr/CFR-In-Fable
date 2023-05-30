@@ -3,7 +3,11 @@ using Microsoft.AspNetCore.Components.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddServerSideBlazor().AddHubOptions(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.MaximumReceiveMessageSize = null; // no limit or use a number
+});
 
 var app = builder.Build();
 

@@ -14,10 +14,16 @@ type StatefulComponent<'TModel,'TAction>(initModel) =
 
     member val Model = initModel with get, set
     abstract member Update : msg: 'TAction -> 'TModel
-    member this.Dispatch(msg) =
-        printfn "Changing the model..."
-        this.Model <- this.Update msg
+
+    member private this.UpdateModel model =
+        this.Model <- model
         this.StateHasChanged()
+
+    member this.Dispatch(msg) =
+        let model = this.Update msg
+        // I have no idea why this error is happening.
+        // I'll open an issue on the ASP.NET Core repo.
+        this.InvokeAsync(fun () -> this.UpdateModel model) |> ignore
 
 module Servers =
 
@@ -40,16 +46,13 @@ module Servers =
                     let mutable model = init
                     while true do
                         let! msg = mb.Receive()
-                        let! r = task { return update msg model mb.Post} |> Async.AwaitTask
-                        model <- r
-                    }) // TODO: Put the canc token back in.
+                        model <- update msg model mb.Post
+                    },cancellation_token)
             mb.Start()
             mb
 
         let server_play =
-            let dispatch_client x =
-                printfn "Dispatching.."
-                FromServer x |> this.Dispatch
+            let dispatch_client = FromServer >> this.Dispatch
             let update msg (model : PlayServerModel) dispatch : PlayServerModel =
                 match msg with
                 | FromLeducGame (Action(leduc_model, msgs, allowed_actions, cont)) ->
@@ -62,19 +65,13 @@ module Servers =
                     Option.iter (fun f -> f action) model.action_cont
                     {model with action_cont=None}
                 | FromClient (SrvStartGame(p0,p1)) ->
-                    printfn "Got SrvStartGame."
                     let dispatch = FromLeducGame >> dispatch
-                    /// Once again, I am really confused as to what is happening here.
-                    /// ...
-                    /// ...
-                    /// Let me pause again.
                     let f = function
                         | PLM_Human -> LeducActionHuman dispatch :> ILeducAction
                         | PLM_Random -> LeducActionRandom()
                         | PLM_CFR (ModelEnum x)
                         | PLM_CFR (ModelMC(x,_)) -> LeducActionCFR(Dictionary x)
                     game dispatch (f p0,f p1)
-                    printfn "Started the game."
                     model
 
             mb PlayServerModel.Init update
