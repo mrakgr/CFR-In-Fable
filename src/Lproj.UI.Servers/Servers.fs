@@ -9,21 +9,36 @@ open Leduc.Play
 open Lproj.Types
 
 [<AbstractClass>]
-type StatefulComponent<'TModel,'TAction>(initModel) =
+type StatefulComponent<'TModel,'TAction>(initModel) as this =
     inherit ComponentBase()
 
-    member val Model = initModel with get, set
-    abstract member Update : msg: 'TAction -> 'TModel
+    // This could be one way of doing it, but it is pretty shitty.
+    let mb =
+        new MailboxProcessor<_>(fun mb -> async {
+            let mutable model = initModel
+            while true do
+                let! msg = mb.Receive()
+                model <- this.Runner(model, msg)
+            })
+    do mb.Start()
 
-    member private this.UpdateModel model =
-        this.Model <- model
+    let mutable model = initModel
+    member _.Model with get () = model
+    abstract member Update : msg: 'TModel * 'TAction -> 'TModel
+
+    member private this.UpdateModel model' =
+        model <- model'
         this.StateHasChanged()
 
-    member this.Dispatch(msg) =
-        let model = this.Update msg
-        // I have no idea why this error is happening.
-        // I'll open an issue on the ASP.NET Core repo.
-        this.InvokeAsync(fun () -> this.UpdateModel model) |> ignore
+    member private this.Runner(model, msg) =
+        let model = this.Update(model, msg)
+        let _ = this.InvokeAsync(fun () -> this.UpdateModel model)
+        model
+
+    /// I am such a fool for not realizing that having different threads randomly fetch the model from here
+    /// is a bad idea. It is a good thing I realized it to begin with.
+    member this.Dispatch(msg) = mb.Post(msg)
+
 
 module Servers =
 
@@ -130,9 +145,7 @@ module Servers =
                     |> TestingModel |> dispatch_client
             mb () update
 
-        override this.Update(msg) =
-            let model = this.Model
-
+        override this.Update(model,msg) =
             let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
                 let m = f model.cfr_players[active_cfr_player]
                 {model with cfr_players=Map.add active_cfr_player m model.cfr_players}
