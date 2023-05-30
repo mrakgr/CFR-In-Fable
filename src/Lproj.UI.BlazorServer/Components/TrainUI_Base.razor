@@ -1,9 +1,42 @@
 ﻿@using static Lproj.Types
+@using System.Timers
+@using ApexCharts
+@implements IDisposable
+
+@typeparam TData where TData : class
 
 <!--suppress SpellCheckingInspection -->
 
 @code {
     public static readonly string ContainerFit = "100%";
+
+    protected ApexChart<TData>? _chart;
+
+    private Timer? _timer;
+    private object? _oldPlayers;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _timer = new Timer(TimeSpan.FromSeconds(0.5));
+            _timer.Elapsed += async delegate
+            {
+                if (_chart != null && !ReferenceEquals(Model.cfr_players, _oldPlayers))
+                {
+                    _oldPlayers = Model.cfr_players;
+                    // https://github.com/apexcharts/Blazor-ApexCharts/issues/244
+                    // bug: XValues are not updating correctly.
+                    await _chart.UpdateSeriesAsync();
+                }
+            };
+            _timer.Start();
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
 
     [Parameter] [EditorRequired]
     public required ClientModel Model { get; set; }
