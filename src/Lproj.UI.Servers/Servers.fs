@@ -12,32 +12,15 @@ open Lproj.Types
 type StatefulComponent<'TModel,'TAction>(initModel) as this =
     inherit ComponentBase()
 
-    // This could be one way of doing it, but it is pretty shitty.
-    let mb =
-        new MailboxProcessor<_>(fun mb -> async {
-            let mutable model = initModel
-            while true do
-                let! msg = mb.Receive()
-                model <- this.Runner(model, msg)
-            })
-    do mb.Start()
-
     let mutable model = initModel
     member _.Model with get () = model
     abstract member Update : msg: 'TModel * 'TAction -> 'TModel
 
-    member private this.UpdateModel model' =
-        model <- model'
+    member private this.Runner(msg) =
+        model <- this.Update(model, msg)
         this.StateHasChanged()
 
-    member private this.Runner(model, msg) =
-        let model = this.Update(model, msg)
-        let _ = this.InvokeAsync(fun () -> this.UpdateModel model)
-        model
-
-    /// I am such a fool for not realizing that having different threads randomly fetch the model from here
-    /// is a bad idea. It is a good thing I realized it to begin with.
-    member this.Dispatch(msg) = mb.Post(msg)
+    member this.Dispatch(msg) = this.InvokeAsync(fun () -> this.Runner msg) |> ignore
 
 
 module Servers =

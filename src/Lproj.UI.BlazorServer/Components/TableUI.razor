@@ -1,4 +1,5 @@
-﻿@using static Lproj.Types
+﻿@using Microsoft.AspNetCore.Components.Web.Virtualization;
+@using static Lproj.Types
 @using Microsoft.FSharp.Core
 
 <!--suppress SpellCheckingInspection -->
@@ -26,23 +27,21 @@
 
         var actions = v.actions;
         var prob = normalize(IsTrain ? v.current_regrets : v.unnormalized_policy_average);
-
+        var els = actions.Zip(prob).ToArray();
         <div class="train-action-probs">
-            @foreach (var (a,b) in actions.Zip(prob))
-            {
+            <Virtualize TItem="(Types.Action,double)" Items="els" Context="el">
                 <div class="train-action-probs-item">
-                    @ModelAction(a)
+                    @ModelAction(el.Item1)
                     <div class="train-probability">
-                        @ShowProbability(b)
+                        @ShowProbability(el.Item2)
                     </div>
                 </div>
-            }
+            </Virtualize>
         </div>
     }
 </div>
 
 @code {
-
     [Parameter]
     [EditorRequired]
     public required CFRPlayerModel Model { get; set; }
