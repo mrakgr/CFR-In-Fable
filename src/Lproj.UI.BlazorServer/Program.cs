@@ -21,11 +21,4 @@ app.UseRouting();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-
 app.Run();
-
-/// This was really the long way around to move a project.
-/// Don't be like me and just have the brains to shutdown the server, and close the terminals before doing any renaming and moving.
-///
-/// We can try running this.
-/// Just why is the project grayed out tho?

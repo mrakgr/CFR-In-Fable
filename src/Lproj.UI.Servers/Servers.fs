@@ -15,6 +15,7 @@ type StatefulComponent<'TModel,'TAction>(initModel) =
     member val Model = initModel with get, set
     abstract member Update : msg: 'TAction -> 'TModel
     member this.Dispatch(msg) =
+        printfn "Changing the model..."
         this.Model <- this.Update msg
         this.StateHasChanged()
 
@@ -41,13 +42,14 @@ module Servers =
                         let! msg = mb.Receive()
                         let! r = task { return update msg model mb.Post} |> Async.AwaitTask
                         model <- r
-                    })
+                    }) // TODO: Put the canc token back in.
             mb.Start()
             mb
 
         let server_play =
-            // TODO: Am I sure this part won't be null?
-            let dispatch_client = FromServer >> this.Dispatch
+            let dispatch_client x =
+                printfn "Dispatching.."
+                FromServer x |> this.Dispatch
             let update msg (model : PlayServerModel) dispatch : PlayServerModel =
                 match msg with
                 | FromLeducGame (Action(leduc_model, msgs, allowed_actions, cont)) ->
@@ -60,16 +62,19 @@ module Servers =
                     Option.iter (fun f -> f action) model.action_cont
                     {model with action_cont=None}
                 | FromClient (SrvStartGame(p0,p1)) ->
+                    printfn "Got SrvStartGame."
                     let dispatch = FromLeducGame >> dispatch
+                    /// Once again, I am really confused as to what is happening here.
+                    /// ...
+                    /// ...
+                    /// Let me pause again.
                     let f = function
                         | PLM_Human -> LeducActionHuman dispatch :> ILeducAction
                         | PLM_Random -> LeducActionRandom()
                         | PLM_CFR (ModelEnum x)
                         | PLM_CFR (ModelMC(x,_)) -> LeducActionCFR(Dictionary x)
                     game dispatch (f p0,f p1)
-                    model
-                | FromClient(TestMessage s) ->
-                    printfn "Got: %s" s
+                    printfn "Started the game."
                     model
 
             mb PlayServerModel.Init update
@@ -82,71 +87,6 @@ module Servers =
                 match msg with
                 | Train (num_iters, pl) ->
                     let train_template f =
-                        /// This is day 4.
-                        /// And hopefully the last one.
-                        /// I've done research on Blazor multi threading,
-                        /// and it is in prototype stage. There was some activity last year in .NET 7, but the
-                        /// devs aren't working on it at, or maybe they are, but it is all under wraps.
-                        ///
-                        /// It is scheduled to be released in very late 2023, this year.
-                        /// Right now we don't have access to it.
-                        ///
-                        /// This is a huge problem.
-                        /// There isn't much we can do about it.
-                        ///
-                        /// Right now all these mailboxes are useless.
-                        /// If we wait half a year once .NET 8 is out in full we'll have proper WASM multi threading,
-                        /// but now things are different.
-                        ///
-                        /// We'll have to move to Blazor Server.
-                        /// Right now the training works, but it is a really bad look to have the UI freeze while that is going on
-                        /// in the background.
-                        ///
-                        /// ...
-                        /// Sigh.
-                        ///
-                        /// For an application like this, I'd really have liked to push it all onto the client.
-                        /// Since the training is so demanding, I am not a big fan of having the user waste my own server's
-                        /// resources just to train an agent.
-                        ///
-                        /// This is one of the reasons, why I didn't feel like making a container app out of this.
-                        /// This Leduc project feels like I am just LARPing as a webdev. I wish I could have skipped Fable and this
-                        /// and gone straight into the VN compiler project.
-                        ///
-                        /// Let's get it over with so we can move on.
-                        /// Now how do we switch projects to Blazor Server?
-                        ///
-                        /// Let's start by creating a template.
-                        ///
-                        /// <Project Sdk="Microsoft.NET.Sdk.Web">
-                        ///
-                        /// So the server version of Blazor is using regular web SDK.
-                        ///
-                        /// <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
-                        ///
-                        /// The Blazor WASM on the other hand uses this.
-                        /// <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0-preview.3.23177.8" />
-                        /// <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0-preview.3.23177.8" PrivateAssets="all" />
-                        ///
-                        /// It is also lacking any of the Blazor server specific packages that we'd expect.
-                        ///
-                        /// Let me pause here, I'll have to think a bit.
-                        /// Isn't there Blazor Unified in .NET 8? Would it be possible to just use that instead of changing my entire project from WASM to Web?
-                        /// ...
-                        /// ...
-                        ///
-                        /// It is a prototype, forget it.
-                        /// Let's just dig in and get cracking.
-                        /// We have two choices right now...either to put the stuff in the Lproj.UI into EmptyBlazorApp1, or the other way around.
-                        /// We'll do the former, as it will allow us to just copy the components straightforwardly.
-                        ///
-                        /// This is a good opportunity to learn some MVC, we hate it and never looked at it, but since we are aiming for .NET web
-                        /// expertise, it is something we should get intimate with.
-                        ///
-                        /// Maybe in the future all this won't be necessary, but for now, we'll roll.
-                        /// We'll go with vanilla.
-
-
                         let mutable num_iters = num_iters
                         while num_iters > 0u do
                             cancellation_token.ThrowIfCancellationRequested()
