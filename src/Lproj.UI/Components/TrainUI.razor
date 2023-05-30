@@ -6,14 +6,14 @@
 
 <div class="train-ui border">
     @Menu()
-    <div class="train-chart border">
-        <ApexChart TItem="TData" Width="ContainerFit" Height="ContainerFit">
-            @Series("Self Play Reward In First Position", e => (decimal)e.Item2.Item1)
-            @Series("Self Play Reward In Last Position", e => (decimal)e.Item2.Item2)
-        </ApexChart>
-    </div>
-    <TableUI Model="M.training_model"
-             IsTrain="true"/>
+    @* <div class="train-chart border"> *@
+    @*     <ApexChart TItem="TData" Width="ContainerFit" Height="ContainerFit"> *@
+    @*         @Series("Self Play Reward In First Position", e => (decimal)e.Item2.Item1) *@
+    @*         @Series("Self Play Reward In Last Position", e => (decimal)e.Item2.Item2) *@
+    @*     </ApexChart> *@
+    @* </div> *@
+    @* <TableUI Model="M.training_model" *@
+    @*          IsTrain="true"/> *@
 </div>
 
 @code {

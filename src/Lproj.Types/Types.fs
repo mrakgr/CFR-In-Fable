@@ -128,10 +128,10 @@ type ClientModel =
                             training_iterations = 0
                             training_iterations_left = 0u
                             training_results = []
-                            training_run_iterations = "50"
+                            training_run_iterations = "10"
                             testing_iterations_left = 0u
                             testing_results = []
-                            testing_run_iterations = "100"
+                            testing_run_iterations = "10"
                             }
                 ] |> Map
         }

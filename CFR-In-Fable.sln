@@ -27,6 +27,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Lproj.UI.Servers", "src\Lpr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lproj.UI", "src\Lproj.UI\Lproj.UI.csproj", "{4789C60C-279D-41C9-BC85-20536DCEE700}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmptyBlazorApp1", "EmptyBlazorApp1\EmptyBlazorApp1.csproj", "{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -112,6 +114,18 @@ Global
 		{4789C60C-279D-41C9-BC85-20536DCEE700}.Release|x64.Build.0 = Release|Any CPU
 		{4789C60C-279D-41C9-BC85-20536DCEE700}.Release|x86.ActiveCfg = Release|Any CPU
 		{4789C60C-279D-41C9-BC85-20536DCEE700}.Release|x86.Build.0 = Release|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Debug|x64.Build.0 = Debug|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Debug|x86.Build.0 = Debug|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Release|x64.ActiveCfg = Release|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Release|x64.Build.0 = Release|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Release|x86.ActiveCfg = Release|Any CPU
+		{2666C4F7-5ED3-4AF1-B9FB-FBD1359171DE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8845BC7D-BCD6-4E4D-A1C1-9CA4F1BC2D88} = {F84DCF8A-FC1A-4677-AF4D-616AD7DB3470}

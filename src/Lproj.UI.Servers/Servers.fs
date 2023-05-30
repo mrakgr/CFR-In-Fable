@@ -33,15 +33,15 @@ module Servers =
         let token_source = new CancellationTokenSource()
         let cancellation_token = token_source.Token
 
-
         let mb init update =
             let mb =
                 new MailboxProcessor<_>(fun mb -> async {
                     let mutable model = init
                     while true do
                         let! msg = mb.Receive()
-                        model <- update msg model mb.Post
-                    },cancellation_token)
+                        let! r = task { return update msg model mb.Post} |> Async.AwaitTask
+                        model <- r
+                    })
             mb.Start()
             mb
 
@@ -60,8 +60,6 @@ module Servers =
                     Option.iter (fun f -> f action) model.action_cont
                     {model with action_cont=None}
                 | FromClient (SrvStartGame(p0,p1)) ->
-                    printfn "In server. Starting game."
-                    // So the server isn't getting any messages.
                     let dispatch = FromLeducGame >> dispatch
                     let f = function
                         | PLM_Human -> LeducActionHuman dispatch :> ILeducAction
@@ -74,16 +72,7 @@ module Servers =
                     printfn "Got: %s" s
                     model
 
-            // mb PlayServerModel.Init update
-            let mb =
-                new MailboxProcessor<_>(fun mb -> async {
-                    let mutable model = PlayServerModel.Init
-                    while true do
-                        let! msg = mb.Receive()
-                        model <- update msg model mb.Post
-                    },cancellation_token)
-            mb.Start()
-            mb
+            mb PlayServerModel.Init update
 
         let server_learn =
             let dispatch_client = FromServer >> this.Dispatch
@@ -93,14 +82,65 @@ module Servers =
                 match msg with
                 | Train (num_iters, pl) ->
                     let train_template f =
-                        try // TODO: Remove this try catch.
-                            let mutable num_iters = num_iters
-                            while num_iters > 0u do
-                                cancellation_token.ThrowIfCancellationRequested()
-                                f() |> TrainingResult |> dispatch_client
-                                num_iters <- num_iters-1u
-                        with e ->
-                            printfn $"%A{e}"
+                        /// This is day 4.
+                        /// And hopefully the last one.
+                        /// I've done research on Blazor multi threading,
+                        /// and it is in prototype stage. There was some activity last year in .NET 7, but the
+                        /// devs aren't working on it at, or maybe they are, but it is all under wraps.
+                        ///
+                        /// It is scheduled to be released in very late 2023, this year.
+                        /// Right now we don't have access to it.
+                        ///
+                        /// This is a huge problem.
+                        /// There isn't much we can do about it.
+                        ///
+                        /// Right now all these mailboxes are useless.
+                        /// If we wait half a year once .NET 8 is out in full we'll have proper WASM multi threading,
+                        /// but now things are different.
+                        ///
+                        /// We'll have to move to Blazor Server.
+                        /// Right now the training works, but it is a really bad look to have the UI freeze while that is going on
+                        /// in the background.
+                        ///
+                        /// ...
+                        /// Sigh.
+                        ///
+                        /// For an application like this, I'd really have liked to push it all onto the client.
+                        /// Since the training is so demanding, I am not a big fan of having the user waste my own server's
+                        /// resources just to train an agent.
+                        ///
+                        /// This is one of the reasons, why I didn't feel like making a container app out of this.
+                        /// This Leduc project feels like I am just LARPing as a webdev. I wish I could have skipped Fable and this
+                        /// and gone straight into the VN compiler project.
+                        ///
+                        /// Let's get it over with so we can move on.
+                        /// Now how do we switch projects to Blazor Server?
+                        ///
+                        /// Let's start by creating a template.
+                        ///
+                        /// <Project Sdk="Microsoft.NET.Sdk.Web">
+                        ///
+                        /// So the server version of Blazor is using regular web SDK.
+                        ///
+                        /// <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+                        ///
+                        /// The Blazor WASM on the other hand uses this.
+                        /// <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0-preview.3.23177.8" />
+                        /// <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0-preview.3.23177.8" PrivateAssets="all" />
+                        ///
+                        /// It is also lacking any of the Blazor server specific packages that we'd expect.
+                        ///
+                        /// Let me pause here, I'll have to think a bit.
+                        /// Isn't there Blazor Unified in .NET 8? Would it be possible to just use that instead of changing my entire project from WASM to Web?
+                        /// ...
+                        /// ...
+
+
+                        let mutable num_iters = num_iters
+                        while num_iters > 0u do
+                            cancellation_token.ThrowIfCancellationRequested()
+                            f() |> TrainingResult |> dispatch_client
+                            num_iters <- num_iters-1u
                     let train_enum (d : Map<_,_>) =
                         let d = Dictionary d
                         train_template (fun () -> Enum, Learn.train_enum d)
@@ -145,39 +185,21 @@ module Servers =
         override this.Update(msg) =
             let model = this.Model
 
-            // I guess that wasn't it.
-
             let inline update' active_cfr_player f = // Inlining funs with closures often improves performance.
                 let m = f model.cfr_players[active_cfr_player]
                 {model with cfr_players=Map.add active_cfr_player m model.cfr_players}
             let inline update f = update' model.active_cfr_player f
-
-            // This makes zero sense to me.
-            // I guess I won't be finishing this rewrite today.
-            // Let me pausse here.
-            // ...
-            // ...
-            server_play.Post(FromClient(TestMessage "123"))
-            server_play.Post(FromClient(TestMessage "345"))
-            server_play.Post(FromClient(TestMessage "678"))
-            server_play.Post(FromClient(TestMessage "890"))
 
             match msg with
             | ClickedOn x ->
                 server_play.Post(FromClient (SrvSelectedAction x))
                 {model with allowed_actions=AllowedActions.Default}
             | StartGame ->
-                printfn "Start game."
-
-                // let get_model = function
-                //     | Human -> PLM_Human
-                //     | Random -> PLM_Random
-                //     | CFR x -> PLM_CFR model.cfr_players[x].training_model
-                // server_play.Post(FromClient (SrvStartGame(get_model model.p0, get_model model.p1)))
-
-                // Not from here.
-                server_play.Post(FromClient(TestMessage "xxx"))
-                printfn "Posted the Start Game message."
+                let get_model = function
+                    | Human -> PLM_Human
+                    | Random -> PLM_Random
+                    | CFR x -> PLM_CFR model.cfr_players[x].training_model
+                server_play.Post(FromClient (SrvStartGame(get_model model.p0, get_model model.p1)))
                 model
             | PlayerChange(id, pl) ->
                 let model =
@@ -219,7 +241,4 @@ module Servers =
                     {m with testing_model=x}
 
         interface IDisposable with
-            member _.Dispose() =
-                printfn "Disposing."
-                token_source.Dispose(); server_learn.Dispose(); server_play.Dispose()
-
+            member _.Dispose() = token_source.Dispose(); server_learn.Dispose(); server_play.Dispose()
