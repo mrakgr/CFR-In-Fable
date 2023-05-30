@@ -9,7 +9,7 @@ open Leduc.Play
 open Lproj.Types
 
 [<AbstractClass>]
-type StatefulComponent<'TModel,'TAction>(initModel) as this =
+type StatefulComponent<'TModel,'TAction>(initModel) =
     inherit ComponentBase()
 
     let mutable model = initModel
