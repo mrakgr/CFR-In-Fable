@@ -11,10 +11,9 @@
         <div class="train-sequences">
             @foreach (var el in k)
             {
-                // Hopefully it won't just toss the render fragments here away.
                 if (el is FSharpChoice<Types.Action, Card>.Choice1Of2 act)
                 {
-                    ModelAction(act.Item);
+                    @ModelAction(act.Item);
                 }
                 else if (el is FSharpChoice<Types.Action, Card>.Choice2Of2 card)
                 {
